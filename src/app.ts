@@ -4,7 +4,7 @@ import express, { NextFunction, Request, Response } from "express";
 import createHttpError, { isHttpError } from "http-errors";
 import userRoutes from "./routes/users";
 
-const app = express();
+export const app = express();
 
 const allowedOrigins = ["http://localhost:3000"];
 

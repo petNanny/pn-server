@@ -105,7 +105,6 @@ export const login: RequestHandler = async (req, res) => {
   //create cookie with refresh token
   res.cookie("jwt", refreshToken, {
     httpOnly: true,
-    //secure: true,
     sameSite: "none",
     maxAge: 7 * 24 * 60 * 60 * 1000, //  7d
   });
@@ -116,7 +115,7 @@ export const login: RequestHandler = async (req, res) => {
 // @desc refresh
 // @route GET /auth/refresh
 // @access Public
-export const refresh: RequestHandler = (req, res) => {
+export const refreshToken: RequestHandler = (req, res) => {
   const cookies = req.cookies;
   console.log("cookies", cookies);
   if (!cookies?.jwt) return res.status(401).json({ message: "Unauthorized" });
@@ -150,18 +149,4 @@ export const refresh: RequestHandler = (req, res) => {
     );
     res.status(200).json({ accessToken });
   });
-};
-
-// @desc Logout
-// @route POST /auth/logout
-// @access Public
-export const logout: RequestHandler = async (req, res) => {
-  const cookies = req.cookies;
-  if (!cookies?.jwt) return res.sendStatus(204);
-  res.clearCookie("jwt", {
-    httpOnly: true,
-    sameSite: "none",
-    //secure: true,
-  });
-  res.json({ message: "Cookie cleared" });
 };

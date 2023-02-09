@@ -30,3 +30,16 @@ export const getUser: RequestHandler = async (req, res, next) => {
     next(error);
   }
 };
+
+// @desc Logout
+// @route POST /users/logout
+// @access Public
+export const logout: RequestHandler = async (req, res) => {
+  const cookies = req.cookies;
+  if (!cookies?.jwt) return res.sendStatus(204);
+  res.clearCookie("jwt", {
+    httpOnly: true,
+    sameSite: "none",
+  });
+  res.json({ message: "Cookie cleared" });
+};

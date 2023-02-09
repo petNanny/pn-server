@@ -3,16 +3,19 @@
 ## Getting Started ✨
 
 ## Installation
+
 ```
  npm i
 ```
 
 ## Environment Variables
+
 Add a file named `.env` at the root directory which is same level as package.json
 you can find SECRET in the Notion, copy paste them into .env file.
 [Notion](https://www.notion.so/Backend-0a4251c3da014b07806bb4dbca32cdef)
 
 ## Running the app
+
 ```
 npm run start
 ```

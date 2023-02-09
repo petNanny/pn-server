@@ -2,7 +2,9 @@ import "dotenv/config";
 import cors from "cors";
 import express, { NextFunction, Request, Response } from "express";
 import createHttpError, { isHttpError } from "http-errors";
-import userRoutes from "./routes/users";
+import cookieParser from "cookie-parser";
+import userRoutes from "./routes/usersRoutes";
+import authRoutes from "./routes/authRoutes";
 
 export const app = express();
 
@@ -10,11 +12,14 @@ const allowedOrigins = ["http://localhost:3000"];
 
 const options: cors.CorsOptions = {
   origin: allowedOrigins,
+  credentials: true,
 };
 app.use(cors(options));
 
 app.use(express.json());
+app.use(cookieParser());
 
+app.use("/api/auth", authRoutes);
 app.use("/api/users", userRoutes);
 
 app.use((req, res, next) => {

@@ -1,12 +1,12 @@
 import createHttpError from "http-errors";
 import mongoose from "mongoose";
 import { RequestHandler } from "express";
-import UserModel from "../models/user";
+import User from "../models/UserModel";
 
 //get all users
 export const getUsers: RequestHandler = async (req, res, next) => {
   try {
-    const users = await UserModel.find().exec();
+    const users = await User.find().exec();
     res.status(200).json(users);
   } catch (error) {
     next(error);
@@ -20,7 +20,7 @@ export const getUser: RequestHandler = async (req, res, next) => {
     if (!mongoose.isValidObjectId(userId)) {
       throw createHttpError(400, "Invalid user id");
     }
-    const user = await UserModel.findById(userId).exec();
+    const user = await User.findById(userId).exec();
 
     if (!user) {
       throw createHttpError(404, "User not found");
@@ -29,4 +29,17 @@ export const getUser: RequestHandler = async (req, res, next) => {
   } catch (error) {
     next(error);
   }
+};
+
+// @desc Logout
+// @route POST /users/logout
+// @access Public
+export const logout: RequestHandler = async (req, res) => {
+  const cookies = req.cookies;
+  if (!cookies?.jwt) return res.sendStatus(204);
+  res.clearCookie("jwt", {
+    httpOnly: true,
+    sameSite: "none",
+  });
+  res.json({ message: "Cookie cleared" });
 };

@@ -5,6 +5,7 @@ import createHttpError, { isHttpError } from "http-errors";
 import cookieParser from "cookie-parser";
 import userRoutes from "./routes/usersRoutes";
 import authRoutes from "./routes/authRoutes";
+const passportSetup = require('./util/passportSetup');
 
 export const app = express();
 

@@ -8,7 +8,11 @@ const router = express.Router();
 router.get("/", petSitterController.getPetSitters);
 //Get one
 router.get("/:id", petSitterController.getPetSitter);
+
 //Update
-router.post("/:id", petSitterController.updatePetSitter);
+router.post("/updatePetSitter/:id", petSitterController.updatePetSitter);
+
+//Create
+router.post("/createPetSitter/:id", petSitterController.createPetSitter);
 
 export default router;

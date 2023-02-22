@@ -31,11 +31,18 @@ const petSitterSchema = new Schema(
         isActive: { type: Boolean },
       },
     ],
-    policy: { type: String, enum: ["Flexible", "Moderate"], default: "Flexible" }, // refund policy
+    policy: {
+      type: String,
+      enum: ["Flexible", "Moderate"],
+      default: "Flexible",
+    }, // refund policy
     preference: {
-      age: { type: String, enum: ["Puppies", "Young", "Adult", "Senior"] }, // dogs ages
-      size: { type: String, enum: ["Small", "Medium", "Large", "Giant"] }, // dogs sizes
-      petTypes: { type: String, enum: ["Cats", "Ferret", "Small animals"] },
+      age: { type: [String], enum: ["Puppies", "Young", "Adult", "Senior"] }, // dogs ages
+      size: { type: [String], enum: ["Small", "Medium", "Large", "Giant"] }, // dogs sizes
+      petTypes: {
+        type: [String],
+        enum: ["Dogs", "Cats", "Ferret", "Small animals"],
+      },
     },
     home: {
       propertyType: { type: String, enum: ["House", "Apartment", "Farm"] },

@@ -5,11 +5,13 @@ import mongoose from "mongoose";
 import PetOwner from "../models/PetOwnerModel";
 
 beforeEach(async () => {
+  jest.setTimeout(60000);
   await mongoose.connect(env.MONGO_CONNECTION_STRING_TEST_DB);
 });
 
 afterEach(async () => {
   await PetOwner.deleteMany();
+  await mongoose.disconnect();
 });
 
 // Pet owners register test
@@ -67,7 +69,7 @@ describe("sign up", () => {
       firstName: "shawn",
       lastName: "wang",
       password: "123",
-      email: "shawn@gmail.com",
+      email: "shawn.wang@gmail.com",
     };
     const res = await supertest(app).post("/api/auth/register").send(newData);
     expect(res.statusCode).toEqual(201);

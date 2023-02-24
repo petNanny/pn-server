@@ -1,7 +1,7 @@
 import createHttpError from "http-errors";
 import mongoose from "mongoose";
 import { RequestHandler } from "express";
-import User from "../models/UserModel";
+import User from "../models/PetSitterModel";
 
 //get all users
 export const getUsers: RequestHandler = async (req, res, next) => {

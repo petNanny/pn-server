@@ -17,6 +17,7 @@ const petOwnerSchema = new Schema(
       default: ["PetOwner"],
     },
     isActive: { type: Boolean, default: true },
+    petSitter: { type: Schema.Types.ObjectId, ref: "PetSitter" },
   },
   {
     timestamps: true,

@@ -7,8 +7,8 @@
     "start": "nodemon src/server.ts",
     "lint": "eslint . --ext .ts",
     "prettier": "prettier --write .",
-    "test": "jest",
-    "test:watch": "jest --watch",
+    "test": "jest --detectOpenHandles",
+    "test:watch": "jest --watch --detectOpenHandles",
     "prepare": "husky install",
     "pre-commit": "npm run prettier && npm run lint && npm run test"
   },

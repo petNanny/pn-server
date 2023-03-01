@@ -3,7 +3,7 @@ import { RequestHandler } from "express";
 import PetSitter from "../models/PetSitterModel";
 import PetOwner from "../models/PetOwnerModel";
 import mongoose from "mongoose";
-import AWS from 'aws-sdk';
+import AWS from "aws-sdk";
 import env from "../util/validateEnv";
 import sharp from "sharp";
 import Attachment from "../models/AttachmentModel";
@@ -180,33 +180,33 @@ export const uploadAttachments: RequestHandler = async (req, res, next) => {
     const s3 = new AWS.S3({
       region: env.AWS_BUCKET_REGION,
       accessKeyId: env.AWS_ACCESS_KEY_ID,
-      secretAccessKey: env.AWS_SECRET_ACCESS_KEY
-    })
+      secretAccessKey: env.AWS_SECRET_ACCESS_KEY,
+    });
     const params = {
       Bucket: env.AWS_BUCKET_NAME,
       Key: `${petSitterId}/${fileName}`,
       Body: fileContent,
-    }
+    };
     const result = await s3.upload(params).promise();
     console.log(`File uploaded successfully. File location: ${result.Location}`);
     const uploadAttachments = await PetSitter.findByIdAndUpdate(
       petSitterId,
-      { $push: {images: result.Location} },
+      { $push: { images: result.Location } },
       { new: true }
     );
     if (!uploadAttachments) {
       throw createHttpError(404, "No attachment found");
     }
     res.status(201).json({
-      message: 'File uploaded successfully',
+      message: "File uploaded successfully",
       fileLocation: result.Location,
     });
   } catch (err) {
     console.error(err);
-    res.status(500).json({ error: 'Internal server error' });
+    res.status(500).json({ error: "Internal server error" });
     next(err);
   }
-}
+};
 
 // pet sitter delete attachments
 // @route DELETE /delete/:id/:fileName
@@ -215,20 +215,20 @@ export const deleteAttachments: RequestHandler = async (req, res, next) => {
     const s3 = new AWS.S3({
       region: env.AWS_BUCKET_REGION,
       accessKeyId: env.AWS_ACCESS_KEY_ID,
-      secretAccessKey: env.AWS_SECRET_ACCESS_KEY
-    })
+      secretAccessKey: env.AWS_SECRET_ACCESS_KEY,
+    });
     const userId = req.params.id;
     const fileName = req.params.fileName;
     const params = {
       Bucket: env.AWS_BUCKET_NAME,
-      Key: `${userId}/${fileName}`
-    }
+      Key: `${userId}/${fileName}`,
+    };
     const result = await s3.deleteObject(params).promise();
     console.log(`File deleted successfully.`);
-    res.status(200).json({ message: 'File deleted successfully' });
+    res.status(200).json({ message: "File deleted successfully" });
   } catch (err) {
     console.error(err);
-    res.status(500).json({ error: 'Internal server error' });
+    res.status(500).json({ error: "Internal server error" });
     next(err);
   }
 };

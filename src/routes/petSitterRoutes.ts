@@ -1,7 +1,7 @@
 import express from "express";
 import * as petSitterController from "../controllers/petSitter";
 import { verifyJWT } from "../middleware/verifyJWT";
-import multer from 'multer';
+import multer from "multer";
 
 const router = express.Router();
 

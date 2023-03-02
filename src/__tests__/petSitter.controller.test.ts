@@ -142,7 +142,6 @@ describe("pet sitter upload image by using pet sitter id", () => {
   // const testImageData1 = fs.readFileSync(testImage1FilePath);
   // const testImageData2 = fs.readFileSync(testImage2FilePath);
   // const testImageData3 = fs.readFileSync(testImage3FilePath);
-
   // it("returns status code 400, by using invalid pet sitter id", async () => {
   //   const res = await supertest(app).post(
   //     "/api/petSitters/upload/6400451574a37ae610ab7c"
@@ -150,7 +149,6 @@ describe("pet sitter upload image by using pet sitter id", () => {
   //   expect(res.statusCode).toEqual(400);
   //   expect(res.body).toEqual({ error: "Invalid pet sitter id." });
   // });
-
   // it("returns status code 200, ", async () => {
   //   const registerData = {
   //     firstName: "tong",
@@ -169,5 +167,4 @@ describe("pet sitter upload image by using pet sitter id", () => {
   //   expect(res.statusCode).toEqual(400);
   //   expect(res.body).toEqual({ error: "Invalid pet sitter id." });
   // })
-
 });

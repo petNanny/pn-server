@@ -178,7 +178,7 @@ export const uploadAttachments: RequestHandler = async (req, res, next) => {
     const petSitterId = req.params.id;
 
     const fileContent = req.file?.buffer;
-    if(!fileContent) {
+    if (!fileContent) {
       throw new Error("invalid file");
     }
     const fileName = req.file?.originalname;

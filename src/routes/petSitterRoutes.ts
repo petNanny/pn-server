@@ -4,6 +4,8 @@ import { verifyJWT } from "../middleware/verifyJWT";
 import multer from "multer";
 
 const router = express.Router();
+const storage = multer.memoryStorage();
+const upload = multer({ storage });
 
 //Get all
 router.get("/", petSitterController.getPetSitters);
@@ -17,11 +19,9 @@ router.post("/updatePetSitter/:id", petSitterController.updatePetSitter);
 router.post("/createPetSitter/:id", petSitterController.createPetSitter);
 
 //Upload attachments
-const storage = multer.memoryStorage();
-const upload = multer({ storage });
 router.post("/upload/:id", upload.single("file"), petSitterController.uploadAttachments);
 
 // Delete attachments
-router.delete("/delete/:id/:fileName", petSitterController.deleteAttachments);
+router.delete("/delete/:id", petSitterController.deleteAttachments);
 
 export default router;

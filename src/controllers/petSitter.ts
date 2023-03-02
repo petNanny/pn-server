@@ -177,18 +177,17 @@ export const uploadAttachments: RequestHandler = async (req, res, next) => {
   const petSitterId = req.params.id;
   const fileName = req.file?.originalname;
   const fileContent = req.file?.buffer;
-  const newFileName = `${fileName?.split('.')[0]}-resized.jpeg`;
-  const resizedImage = await sharp(fileContent)
-    .toFormat('jpeg')
-    .jpeg({ quality: 80 })
-    .toBuffer();
+  const newFileName = `${fileName?.split(".")[0]}-resized.jpeg`;
+  const resizedImage = await sharp(fileContent).toFormat("jpeg").jpeg({ quality: 80 }).toBuffer();
 
   try {
     if (!mongoose.isValidObjectId(petSitterId)) {
       return res.status(400).json({ error: "Invalid pet sitter id." });
     }
 
-    const duplicate = await Attachment.findOne({$and: [{ fileName: newFileName}, {petSitterId: petSitterId }]});
+    const duplicate = await Attachment.findOne({
+      $and: [{ fileName: newFileName }, { petSitterId: petSitterId }],
+    });
     if (duplicate) {
       return res
         .status(409)
@@ -210,7 +209,7 @@ export const uploadAttachments: RequestHandler = async (req, res, next) => {
     const uploadAttachment = await Attachment.create({
       url: result.Location,
       fileName: newFileName,
-      petSitterId: petSitterId
+      petSitterId: petSitterId,
     });
     if (!uploadAttachment) {
       return res.status(400).json({ error: "Failing to upload attachment" });
@@ -257,15 +256,20 @@ export const deleteAttachments: RequestHandler = async (req, res, next) => {
     };
     const deleteImageOnS3 = await s3.deleteObject(params).promise();
 
-    const foundImage = await Attachment.findOne({$and: [{ fileName: fileName}, {petSitterId: petSitterId }]});
+    const foundImage = await Attachment.findOne({
+      $and: [{ fileName: fileName }, { petSitterId: petSitterId }],
+    });
     if (!foundImage) {
       return res.status(404).json({ error: "Image not found." });
     }
-    const deleteImage = await PetSitter.updateOne({ _id: petSitterId }, { $pull: { images: foundImage._id } });
+    const deleteImage = await PetSitter.updateOne(
+      { _id: petSitterId },
+      { $pull: { images: foundImage._id } }
+    );
     if (deleteImage.modifiedCount === 0) {
       return res.status(400).json({ error: "failed to delete image from petSitter" });
     }
-    const deleteImageOnAttachment = await Attachment.findOneAndDelete({_id: foundImage._id})
+    const deleteImageOnAttachment = await Attachment.findOneAndDelete({ _id: foundImage._id });
     if (deleteImageOnAttachment) {
       return res.status(400).json({ error: "failed to delete image from petSitter" });
     }

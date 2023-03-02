@@ -174,15 +174,23 @@ export const createPetSitter: RequestHandler = async (req, res, next) => {
 // pet sitter upload attachments
 // @route POST /upload/:id
 export const uploadAttachments: RequestHandler = async (req, res, next) => {
-  const petSitterId = req.params.id;
-  const fileName = req.file?.originalname;
-  const fileContent = req.file?.buffer;
-  const newFileName = `${fileName?.split(".")[0]}-resized.jpeg`;
-  const resizedImage = await sharp(fileContent).toFormat("jpeg").jpeg({ quality: 80 }).toBuffer();
-
   try {
+    const petSitterId = req.params.id;
+
+    const fileContent = req.file?.buffer;
+    if(!fileContent) {
+      throw new Error("invalid file");
+    }
+    const fileName = req.file?.originalname;
+    const newFileName = `${fileName?.split(".")[0]}-resized.jpeg`;
+    const resizedImage = await sharp(fileContent).toFormat("jpeg").jpeg({ quality: 80 }).toBuffer();
+
     if (!mongoose.isValidObjectId(petSitterId)) {
       return res.status(400).json({ error: "Invalid pet sitter id." });
+    }
+    const petSitter = await PetSitter.findById(petSitterId).populate({ path: "images" });
+    if (!petSitter) {
+      return res.status(404).json({ error: "Pet sitter not found." });
     }
 
     const duplicate = await Attachment.findOne({
@@ -220,12 +228,11 @@ export const uploadAttachments: RequestHandler = async (req, res, next) => {
       { $push: { images: uploadAttachment._id } },
       { new: true }
     ).populate({ path: "images" });
-    res.status(201).json({
+    return res.status(201).json({
       message: `File uploaded to ${result.Location} successfully`,
       updatePetSitterImage,
     });
   } catch (err) {
-    res.status(500).json({ error: "Internal server error" });
     next(err);
   }
 };
@@ -274,9 +281,8 @@ export const deleteAttachments: RequestHandler = async (req, res, next) => {
       return res.status(400).json({ error: "failed to delete image from petSitter" });
     }
 
-    res.status(200).json({ message: "File deleted successfully" });
+    return res.status(200).json({ message: "File deleted successfully" });
   } catch (err) {
-    res.status(500).json({ error: "Internal server error" });
     next(err);
   }
 };

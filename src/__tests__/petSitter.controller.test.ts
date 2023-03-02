@@ -4,6 +4,9 @@ import env from "../util/validateEnv";
 import mongoose from "mongoose";
 import PetSitter from "../models/PetSitterModel";
 import PetOwner from "../models/PetOwnerModel";
+import Attachment from "../models/AttachmentModel";
+import * as path from "path";
+import * as fs from "fs";
 
 beforeEach(async () => {
   jest.setTimeout(60000);
@@ -129,4 +132,42 @@ describe("Update one pet sitter by using pet sitter id", () => {
     expect(res.statusCode).toEqual(200);
     expect(res.body.updatePetSitter.abn).toEqual("123456789");
   });
+});
+
+describe("pet sitter upload image by using pet sitter id", () => {
+  // const testPetSitterId = "6400451574a37ae610ab7cbb";
+  // const testImage1FilePath = path.join(__dirname, "./assets/test_image1.jpg");
+  // const testImage2FilePath = path.join(__dirname, "./assets/test_image2.jpg");
+  // const testImage3FilePath = path.join(__dirname, "./assets/test_image3.jpg");
+  // const testImageData1 = fs.readFileSync(testImage1FilePath);
+  // const testImageData2 = fs.readFileSync(testImage2FilePath);
+  // const testImageData3 = fs.readFileSync(testImage3FilePath);
+
+  // it("returns status code 400, by using invalid pet sitter id", async () => {
+  //   const res = await supertest(app).post(
+  //     "/api/petSitters/upload/6400451574a37ae610ab7c"
+  //   );
+  //   expect(res.statusCode).toEqual(400);
+  //   expect(res.body).toEqual({ error: "Invalid pet sitter id." });
+  // });
+
+  // it("returns status code 200, ", async () => {
+  //   const registerData = {
+  //     firstName: "tong",
+  //     lastName: "lin",
+  //     password: "1111",
+  //     email: "tong123@test.com",
+  //   };
+  //   const petOwner = await supertest(app).post("/api/auth/register").send(registerData);
+  //   const petOwnerId = petOwner.body._id;
+  //   const petSitter = await supertest(app).post(`/api/petSitters/createPetSitter/${petOwnerId}`);
+  //   const petSitterId = petSitter.body.petSitterFullInfo._id;
+  //   // const res = await supertest(app).get(`/api/petSitters/${petSitterId}`);
+  //   const res = await supertest(app).post(
+  //         `/api/petSitters/upload/${petSitterId}a`
+  //       );
+  //   expect(res.statusCode).toEqual(400);
+  //   expect(res.body).toEqual({ error: "Invalid pet sitter id." });
+  // })
+
 });

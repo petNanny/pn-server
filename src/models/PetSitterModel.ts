@@ -14,12 +14,6 @@ const petSitterSchema = new Schema(
       longitude: { type: String },
     },
     images: [{ type: Schema.Types.ObjectId, ref: "Attachment" }],
-    // images: [
-    //   {
-    //     url: { type: String, require: true },
-    //     fileName: { type: String, require: true },
-    //   }
-    // ],
     languages: [String],
     introduction: { type: String, default: "" },
     description: { type: String, default: "" },

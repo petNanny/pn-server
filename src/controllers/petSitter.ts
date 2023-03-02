@@ -13,8 +13,9 @@ export const getPetSitters: RequestHandler = async (req, res, next) => {
     const LIMIT = 8;
     const startIndex = (Number(page) - 1) * LIMIT;
     const total = await PetSitter.countDocuments({});
-
+    //TODO:
     //sort will be changed later, so far use create_time desc
+    //will add this filter { isActivePetSitter: true }
     const petSitters = await PetSitter.find()
       .sort({ _id: -1 })
       .limit(LIMIT)

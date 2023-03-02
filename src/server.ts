@@ -4,6 +4,7 @@ import mongoose from "mongoose";
 
 const port = env.PORT;
 
+mongoose.set("strictQuery", true);
 mongoose.set("runValidators", true);
 mongoose
   .connect(env.MONGO_CONNECTION_STRING)

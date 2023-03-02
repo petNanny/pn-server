@@ -48,6 +48,8 @@ export const getPetSitter: RequestHandler = async (req, res, next) => {
     const petSitter = await PetSitter.findById(petSitterId).populate({
       path: "petOwner",
       select: "-password",
+    }).populate({
+      path: "images",
     });
 
     if (!petSitter) {
@@ -173,9 +175,10 @@ export const uploadAttachments: RequestHandler = async (req, res, next) => {
   const petSitterId = req.params.id;
   const fileName = req.file?.originalname;
   const fileContent = req.file?.buffer;
+
   try {
     if (!mongoose.isValidObjectId(petSitterId)) {
-      throw createHttpError(400, "Invalid pet sitter id.");
+      return res.status(400).json({ error: "Invalid pet sitter id." });
     }
     const s3 = new AWS.S3({
       region: env.AWS_BUCKET_REGION,
@@ -188,21 +191,33 @@ export const uploadAttachments: RequestHandler = async (req, res, next) => {
       Body: fileContent,
     };
     const result = await s3.upload(params).promise();
-    console.log(`File uploaded successfully. File location: ${result.Location}`);
-    const uploadAttachments = await PetSitter.findByIdAndUpdate(
-      petSitterId,
-      { $push: { images: result.Location } },
-      { new: true }
-    );
-    if (!uploadAttachments) {
-      throw createHttpError(404, "No attachment found");
+    const duplicate = await Attachment.findOne({url: result.Location})
+    console.log(fileContent);
+
+    // console.log(duplicate);
+    if(duplicate) {
+      return res.status(409).json({ error: "Image has been uploaded, please rename file or upload another one"});
     }
+
+    const uploadAttachment = await Attachment.create({
+      url: result.Location,
+      name: fileName
+    })
+    if (!uploadAttachment) {
+      return res.status(400).json({ error: "Failing to upload attachment"});
+    }
+
+    const updatePetSitterImage = await PetSitter.findByIdAndUpdate(
+      petSitterId,
+      { $push: { images: uploadAttachment._id} },
+      { new: true }
+    ).populate({ path: "images" });
     res.status(201).json({
       message: "File uploaded successfully",
       fileLocation: result.Location,
+      updatePetSitterImage
     });
   } catch (err) {
-    console.error(err);
     res.status(500).json({ error: "Internal server error" });
     next(err);
   }
@@ -211,23 +226,35 @@ export const uploadAttachments: RequestHandler = async (req, res, next) => {
 // pet sitter delete attachments
 // @route DELETE /delete/:id/:fileName
 export const deleteAttachments: RequestHandler = async (req, res, next) => {
+  const { fileUrl } = req.body;
   try {
     const s3 = new AWS.S3({
       region: env.AWS_BUCKET_REGION,
       accessKeyId: env.AWS_ACCESS_KEY_ID,
       secretAccessKey: env.AWS_SECRET_ACCESS_KEY,
     });
-    const userId = req.params.id;
+    const petSitterId = req.params.id;
+
+    if (!mongoose.isValidObjectId(petSitterId)) {
+      return res.status(400).json({ error: "Invalid pet sitter id." });
+    }
+    const petSitter = await PetSitter.findById(petSitterId).populate({ path: "images" });
+    if (!petSitter) {
+      return res.status(404).json({ error: "Pet sitter not found." });
+    }
+
+
     const fileName = req.params.fileName;
     const params = {
       Bucket: env.AWS_BUCKET_NAME,
-      Key: `${userId}/${fileName}`,
+      Key: `${petSitterId}/${fileName}`,
     };
     const result = await s3.deleteObject(params).promise();
-    console.log(`File deleted successfully.`);
+    const deletePetSitterImage = await PetSitter.findOneAndDelete({"url": `https://${env.AWS_BUCKET_NAME}.s3.${env.AWS_BUCKET_REGION}.amazonaws.com/${petSitterId}/${fileName}`})
+
     res.status(200).json({ message: "File deleted successfully" });
   } catch (err) {
-    console.error(err);
+
     res.status(500).json({ error: "Internal server error" });
     next(err);
   }

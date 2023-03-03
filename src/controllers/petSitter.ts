@@ -13,8 +13,9 @@ export const getPetSitters: RequestHandler = async (req, res, next) => {
     const LIMIT = 8;
     const startIndex = (Number(page) - 1) * LIMIT;
     const total = await PetSitter.countDocuments({});
-
+    //TODO:
     //sort will be changed later, so far use create_time desc
+    //will add this filter { isActivePetSitter: true }
     const petSitters = await PetSitter.find()
       .sort({ _id: -1 })
       .limit(LIMIT)
@@ -114,7 +115,7 @@ export const createPetSitter: RequestHandler = async (req, res, next) => {
       throw createHttpError(400, "Invalid pet owner id.");
     }
 
-    const foundPetOwner = await PetOwner.findOne({ _id: petOwnerId });
+    let foundPetOwner = await PetOwner.findOne({ _id: petOwnerId });
 
     if (!foundPetOwner) {
       throw createHttpError(404, "Pet owner not found.");
@@ -147,6 +148,12 @@ export const createPetSitter: RequestHandler = async (req, res, next) => {
       isActivePetSitter,
     });
 
+    foundPetOwner = await PetOwner.findByIdAndUpdate(
+      foundPetOwner._id,
+      { $push: { roles: "PetSitter" }, $set: { petSitter: petSitterInfo._id } },
+      { new: true }
+    );
+
     const petSitterFullInfo = await PetSitter.findOne({ _id: petSitterInfo._id }).populate({
       path: "petOwner",
       select: "-password",
@@ -154,7 +161,7 @@ export const createPetSitter: RequestHandler = async (req, res, next) => {
     });
 
     if (!petSitterInfo) {
-      throw createHttpError("400", "Failing to create the petSitter");
+      throw createHttpError(400, "Failing to create the petSitter");
     }
 
     res.status(201).json({ petSitterFullInfo });

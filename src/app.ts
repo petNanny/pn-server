@@ -3,9 +3,9 @@ import cors from "cors";
 import express, { NextFunction, Request, Response } from "express";
 import createHttpError, { isHttpError } from "http-errors";
 import cookieParser from "cookie-parser";
-import userRoutes from "./routes/usersRoutes";
 import authRoutes from "./routes/authRoutes";
 import petSittersRoutes from "./routes/petSitterRoutes";
+import petOwnersRoutes from "./routes/petOwnerRoutes";
 
 export const app = express();
 
@@ -21,8 +21,8 @@ app.use(express.json());
 app.use(cookieParser());
 
 app.use("/api/auth", authRoutes);
-app.use("/api/users", userRoutes);
 app.use("/api/petSitters", petSittersRoutes);
+app.use("/api/petOwners", petOwnersRoutes);
 
 app.use((req, res, next) => {
   next(createHttpError(404, "Endpoint not found"));

@@ -15,7 +15,10 @@ export const getPetOwner: RequestHandler = async (req, res, next) => {
     if (!petOwnerId) {
       throw createHttpError(400, "Pet owner ID Required");
     }
-    const petOwner = await PetOwner.findById(petOwnerId).exec();
+    const petOwner = await PetOwner.findById(petOwnerId).populate({
+      path: "petSitter",
+      strictPopulate: false,
+    });
     if (!petOwner || !petOwner.isActive) {
       throw createHttpError(400, "Pet owner not found");
     }

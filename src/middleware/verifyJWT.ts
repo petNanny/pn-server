@@ -14,16 +14,17 @@ export const verifyJWT = (req: RequestWithUserRole, res: Response, next: NextFun
   const authHeader = req.headers.authorization || (req.headers.Authorization as string | undefined);
 
   if (!authHeader?.startsWith("Bearer ")) {
-    throw createHttpError("401", "Unauthorized");
+    throw createHttpError(401, "Unauthorized");
   }
 
   const token = authHeader.split(" ")[1];
 
-  jwt.verify(token, env.ACCESS_TOKEN_SECRET, async (err: Error | null, decoded: any) => {
-    if (err) throw createHttpError("403", "Forbidden");
-    req.id = decoded.PetOwnerInfo.id;
-    req.email = decoded.PetOwnerInfo.email;
-    req.roles = decoded.PetOwnerInfo.roles;
+  jwt.verify(token, env.ACCESS_TOKEN_SECRET, (err: Error | null, decoded: any) => {
+    if (err) return next(createHttpError(403, "Forbidden"));
+
+    // req.id = decoded.PetOwnerInfo.id;
+    // req.email = decoded.PetOwnerInfo.email;
+    // req.roles = decoded.PetOwnerInfo.roles;
 
     next();
   });

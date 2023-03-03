@@ -115,7 +115,7 @@ export const createPetSitter: RequestHandler = async (req, res, next) => {
       throw createHttpError(400, "Invalid pet owner id.");
     }
 
-    const foundPetOwner = await PetOwner.findOne({ _id: petOwnerId });
+    let foundPetOwner = await PetOwner.findOne({ _id: petOwnerId });
 
     if (!foundPetOwner) {
       throw createHttpError(404, "Pet owner not found.");
@@ -148,6 +148,12 @@ export const createPetSitter: RequestHandler = async (req, res, next) => {
       isActivePetSitter,
     });
 
+    foundPetOwner = await PetOwner.findByIdAndUpdate(
+      foundPetOwner._id,
+      { $push: { roles: "PetSitter" }, $set: { petSitter: petSitterInfo._id } },
+      { new: true }
+    );
+
     const petSitterFullInfo = await PetSitter.findOne({ _id: petSitterInfo._id }).populate({
       path: "petOwner",
       select: "-password",
@@ -155,7 +161,7 @@ export const createPetSitter: RequestHandler = async (req, res, next) => {
     });
 
     if (!petSitterInfo) {
-      throw createHttpError("400", "Failing to create the petSitter");
+      throw createHttpError(400, "Failing to create the petSitter");
     }
 
     res.status(201).json({ petSitterFullInfo });

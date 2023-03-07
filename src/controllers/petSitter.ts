@@ -181,7 +181,10 @@ export const uploadAttachments: RequestHandler = async (req, res, next) => {
     }
     const fileName = req.file?.originalname;
     const newFileName = `${fileName?.split(".")[0]}-resized.jpeg`;
-    const resizedImage = await sharp(fileContent.buffer).toFormat("jpeg").jpeg({ quality: 80 }).toBuffer();
+    const resizedImage = await sharp(fileContent.buffer)
+      .toFormat("jpeg")
+      .jpeg({ quality: 80 })
+      .toBuffer();
 
     if (!mongoose.isValidObjectId(petSitterId)) {
       return res.status(400).json({ error: "Invalid pet sitter id." });

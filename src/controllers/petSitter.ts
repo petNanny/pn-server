@@ -50,9 +50,7 @@ export const getPetSitter: RequestHandler = async (req, res, next) => {
         path: "petOwner",
         select: "-password",
       })
-      .populate({
-        path: "images",
-      });
+      .populate("images");
 
     if (!petSitter) {
       throw createHttpError(404, "Pet sitter not found.");
@@ -177,13 +175,13 @@ export const uploadAttachments: RequestHandler = async (req, res, next) => {
   try {
     const petSitterId = req.params.id;
 
-    const fileContent = req.file?.buffer;
+    const fileContent = req.file;
     if (!fileContent) {
-      throw new Error("invalid file");
+      return res.status(404).json({ error: "Image not found." });
     }
     const fileName = req.file?.originalname;
     const newFileName = `${fileName?.split(".")[0]}-resized.jpeg`;
-    const resizedImage = await sharp(fileContent).toFormat("jpeg").jpeg({ quality: 80 }).toBuffer();
+    const resizedImage = await sharp(fileContent.buffer).toFormat("jpeg").jpeg({ quality: 80 }).toBuffer();
 
     if (!mongoose.isValidObjectId(petSitterId)) {
       return res.status(400).json({ error: "Invalid pet sitter id." });
@@ -274,11 +272,11 @@ export const deleteAttachments: RequestHandler = async (req, res, next) => {
       { $pull: { images: foundImage._id } }
     );
     if (deleteImage.modifiedCount === 0) {
-      return res.status(400).json({ error: "failed to delete image from petSitter" });
+      return res.status(400).json({ error: "failed to delete image from PetSitter" });
     }
-    const deleteImageOnAttachment = await Attachment.findOneAndDelete({ _id: foundImage._id });
-    if (deleteImageOnAttachment) {
-      return res.status(400).json({ error: "failed to delete image from petSitter" });
+    const deleteImageOnAttachment = await Attachment.deleteOne({ _id: foundImage._id });
+    if (deleteImageOnAttachment.deletedCount === 0) {
+      return res.status(400).json({ error: "failed to delete image from Attachment" });
     }
 
     return res.status(200).json({ message: "File deleted successfully" });

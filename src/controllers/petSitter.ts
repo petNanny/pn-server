@@ -196,7 +196,9 @@ export const uploadAttachments: RequestHandler = async (req, res, next) => {
     if (!mongoose.isValidObjectId(petOwnerId)) {
       return res.status(400).json({ error: "Invalid pet sitter id." });
     }
-    const petSitter = await PetSitter.findOne({petOwner: petOwnerId}).populate({ path: "images" }).populate({ path: "petOwner" });
+    const petSitter = await PetSitter.findOne({ petOwner: petOwnerId })
+      .populate({ path: "images" })
+      .populate({ path: "petOwner" });
     if (!petSitter) {
       return res.status(404).json({ error: "Pet sitter not found." });
     }
@@ -233,7 +235,9 @@ export const uploadAttachments: RequestHandler = async (req, res, next) => {
       { petOwner: petOwnerId },
       { $push: { images: uploadAttachment._id } },
       { new: true }
-    ).populate({ path: "images" }).populate({ path: "petOwner" });
+    )
+      .populate({ path: "images" })
+      .populate({ path: "petOwner" });
     return res.status(201).json({
       message: `File uploaded to ${result.Location} successfully`,
       updatePetSitterImage,
@@ -258,7 +262,9 @@ export const deleteAttachments: RequestHandler = async (req, res, next) => {
     if (!mongoose.isValidObjectId(petOwnerId)) {
       return res.status(400).json({ error: "Invalid pet sitter id." });
     }
-    const petSitter = await PetSitter.findOne({petOwner: petOwnerId}).populate({ path: "images" }).populate({ path: "petOwner" });
+    const petSitter = await PetSitter.findOne({ petOwner: petOwnerId })
+      .populate({ path: "images" })
+      .populate({ path: "petOwner" });
     if (!petSitter) {
       return res.status(404).json({ error: "Pet sitter not found." });
     }

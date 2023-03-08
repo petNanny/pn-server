@@ -3,7 +3,7 @@ import PetOwner from "../models/PetOwnerModel";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import env from "../util/validateEnv";
-
+import _ from "lodash";
 // @desc Create new pet Owner
 // @route POST /auth/register
 // @access Public
@@ -84,6 +84,7 @@ export const login: RequestHandler = async (req, res) => {
   const accessToken = jwt.sign(
     {
       PetOwnerInfo: {
+        id: foundPetOwner._id,
         email: foundPetOwner.email,
         roles: foundPetOwner.roles,
       },
@@ -102,14 +103,16 @@ export const login: RequestHandler = async (req, res) => {
     { expiresIn: "7d" }
   );
 
+  const currentPetOwner = _.omit(foundPetOwner.toObject(), ["_password", "__v"]);
+
   //create cookie with refresh token
-  res.cookie("jwt", refreshToken, {
+  res.cookie("jsonWebToken", refreshToken, {
     httpOnly: true,
     sameSite: "none",
     maxAge: 7 * 24 * 60 * 60 * 1000, //  7d
   });
 
-  res.status(200).json({ accessToken });
+  res.status(200).json({ accessToken, currentPetOwner });
 };
 
 // @desc refresh
@@ -138,6 +141,7 @@ export const refreshToken: RequestHandler = (req, res) => {
     const accessToken = jwt.sign(
       {
         PetOwnerInfo: {
+          id: foundPetOwner._id,
           email: foundPetOwner.email,
           roles: foundPetOwner.roles,
         },

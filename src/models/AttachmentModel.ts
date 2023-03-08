@@ -4,7 +4,7 @@ const attachmentSchema = new Schema(
   {
     url: { type: String, require: true },
     fileName: { type: String, require: true },
-    petSitterId: { type: Schema.Types.ObjectId, ref: "PetSitter", require: true },
+    petOwner: { type: Schema.Types.ObjectId, ref: "PetOwner", require: true },
   },
   {
     timestamps: true,

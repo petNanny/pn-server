@@ -190,7 +190,7 @@ export const uploadAttachments: RequestHandler = async (req, res, next) => {
     const newFileName = `${fileName?.split(".")[0]}-${petOwnerId}-resized.jpeg`;
     const resizedImage = await sharp(fileContent.buffer)
       .toFormat("jpeg")
-      .jpeg({ quality: 80 })
+      .jpeg({ quality: 30 })
       .toBuffer();
 
     if (!mongoose.isValidObjectId(petOwnerId)) {

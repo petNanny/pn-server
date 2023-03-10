@@ -192,7 +192,7 @@ export const userGetOwnImages: RequestHandler = async (req, res, next) => {
       return res.status(404).json({ error: "Pet sitter not found." });
     }
 
-    const petSitterImages = await Image.find({ petOwner: petOwnerId }).sort({ orderNumber: 1 })
+    const petSitterImages = await Image.find({ petOwner: petOwnerId }).sort({ orderNumber: 1 });
 
     res.status(200).json(petSitterImages);
   } catch (error) {
@@ -216,7 +216,9 @@ export const userGetPetSitterImages: RequestHandler = async (req, res, next) => 
       return res.status(404).json({ error: "Pet sitter not found." });
     }
 
-    const petSitterImages = await Image.find({ petOwner: petSitter.petOwner?._id }).sort({ orderNumber: 1 })
+    const petSitterImages = await Image.find({ petOwner: petSitter.petOwner?._id }).sort({
+      orderNumber: 1,
+    });
 
     res.status(200).json(petSitterImages);
   } catch (error) {
@@ -273,16 +275,16 @@ export const uploadAttachments: RequestHandler = async (req, res, next) => {
     const highestOrderImage = await Image.findOne({ petOwner: petOwnerId }).sort("-orderNumber");
     let orderNumber;
     if (highestOrderImage && highestOrderImage.orderNumber) {
-      orderNumber = highestOrderImage.orderNumber + 1
+      orderNumber = highestOrderImage.orderNumber + 1;
     } else {
-      orderNumber = 1
+      orderNumber = 1;
     }
 
     const uploadAttachment = await Image.create({
       url: result.Location,
       fileName: newFileName,
       petOwner: petOwnerId,
-      orderNumber: orderNumber
+      orderNumber: orderNumber,
     });
     if (!uploadAttachment) {
       return res.status(400).json({ error: "Failing to upload attachment" });
@@ -365,23 +367,21 @@ export const updateImagesOrder: RequestHandler = async (req, res, next) => {
       throw createHttpError(400, "Invalid pet sitter id.");
     }
 
-    const petSitter = await PetSitter.findOne({ petOwner: petOwnerId }).populate({ path: "petOwner" });
+    const petSitter = await PetSitter.findOne({ petOwner: petOwnerId }).populate({
+      path: "petOwner",
+    });
     if (!petSitter) {
       return res.status(404).json({ error: "Pet sitter not found." });
     }
 
     petSitterImages.forEach(async (petSitterImage: any, index: number) => {
       try {
-        await Image.findByIdAndUpdate(
-          petSitterImage._id,
-          { orderNumber: index},
-          { new: true }
-        )
+        await Image.findByIdAndUpdate(petSitterImage._id, { orderNumber: index }, { new: true });
       } catch (err) {
         console.log(err);
         throw createHttpError(200, "failed to update images order.");
       }
-    })
+    });
 
     res.status(200).json(petSitterImages);
   } catch (error) {

@@ -4,7 +4,7 @@ import env from "../util/validateEnv";
 import mongoose from "mongoose";
 import PetSitter from "../models/PetSitterModel";
 import PetOwner from "../models/PetOwnerModel";
-import Attachment from "../models/AttachmentModel";
+import Attachment from "../models/ImagesModel";
 import * as path from "path";
 import * as fs from "fs";
 

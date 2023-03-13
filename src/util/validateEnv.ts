@@ -8,4 +8,8 @@ export default cleanEnv(process.env, {
   REFRESH_TOKEN_SECRET: str(),
   TEST_PORT: port(),
   MONGO_CONNECTION_STRING_TEST_DB: str(),
+  AWS_ACCESS_KEY_ID: str(),
+  AWS_SECRET_ACCESS_KEY: str(),
+  AWS_BUCKET_NAME: str(),
+  AWS_BUCKET_REGION: str(),
 });

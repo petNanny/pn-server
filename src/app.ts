@@ -6,6 +6,7 @@ import cookieParser from "cookie-parser";
 import authRoutes from "./routes/authRoutes";
 import petSittersRoutes from "./routes/petSitterRoutes";
 import petOwnersRoutes from "./routes/petOwnerRoutes";
+import filterPetSitterRoutes from "./routes/filterPetSitterRoutes";
 
 export const app = express();
 
@@ -23,6 +24,7 @@ app.use(cookieParser());
 app.use("/api/auth", authRoutes);
 app.use("/api/petSitters", petSittersRoutes);
 app.use("/api/petOwners", petOwnersRoutes);
+app.use("/api/filter", filterPetSitterRoutes);
 
 app.use((req, res, next) => {
   next(createHttpError(404, "Endpoint not found"));

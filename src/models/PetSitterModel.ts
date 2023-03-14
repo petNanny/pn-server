@@ -19,7 +19,10 @@ const petSitterSchema = new Schema(
     description: { type: String, default: "" },
     service: [
       {
-        service: { type: String }, // service name
+        service: { 
+          type: String,
+          enum: ["Dog boarding", "Doggy day care", "Dog walking", "Home visits", "House sitting"], 
+        }, // service name
         serviceDesc: { type: String },
         Rate: { type: Number }, // service price
         isActive: { type: Boolean },
@@ -72,6 +75,7 @@ const petSitterSchema = new Schema(
     ],
     abn: { type: String, default: "" },
     isActivePetSitter: { type: Boolean, default: false },
+    notAvailableDates: [Date]
   },
   {
     timestamps: true,

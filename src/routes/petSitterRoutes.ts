@@ -15,4 +15,7 @@ router.post("/updatePetSitter/:id", petSitterController.updatePetSitter);
 //Create
 router.post("/createPetSitter/:id", petSitterController.createPetSitter);
 
+// filter pet sitter
+router.post("/filter", petSitterController.filterPetSitter);
+
 export default router;

@@ -4,6 +4,20 @@ import PetSitter from "../models/PetSitterModel";
 import PetOwner from "../models/PetOwnerModel";
 import mongoose from "mongoose";
 
+interface filterValues {
+  "service.service"?: { $eq: "Dog boarding" | "Doggy day care" | "Dog walking" | "Home visits" | "House sitting" };
+  notAvailableDates?: { $nin: Date[] };
+  geoCode?: {
+    $near: {
+      $geometry: {
+        type: "Point",
+        coordinates: number[],
+      },
+      $maxDistance: number,
+    },
+  };
+}
+
 // @desc Get all pet sitters
 // @route GET /petSitter
 // @access Public
@@ -165,6 +179,39 @@ export const createPetSitter: RequestHandler = async (req, res, next) => {
     }
 
     res.status(201).json({ petSitterFullInfo });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const filterPetSitter: RequestHandler = async (req, res, next) => {
+  const { selectedDates, petService, latitude, longitude } = req.body;
+
+  const filter: filterValues = {};
+  if (petService) {
+    filter["service.service"] = { $eq: petService };
+  }
+  if (selectedDates) {
+    filter.notAvailableDates = { $nin: selectedDates };
+  }
+  if (latitude && longitude) {
+    filter.geoCode = {
+      $near: {
+        $geometry: {
+          type: "Point",
+          coordinates: [longitude, latitude],
+        },
+        $maxDistance: 50000,
+      },
+    };
+  }
+
+  try {
+    const results = await PetSitter.find(filter).populate({
+      path: "petOwner",
+      select: "-password",
+    }).exec();
+    res.status(200).json(results);
   } catch (error) {
     next(error);
   }

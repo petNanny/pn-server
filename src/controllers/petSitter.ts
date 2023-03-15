@@ -5,16 +5,18 @@ import PetOwner from "../models/PetOwnerModel";
 import mongoose from "mongoose";
 
 interface filterValues {
-  "service.service"?: { $eq: "Dog boarding" | "Doggy day care" | "Dog walking" | "Home visits" | "House sitting" };
+  "service.service"?: {
+    $eq: "Dog boarding" | "Doggy day care" | "Dog walking" | "Home visits" | "House sitting";
+  };
   notAvailableDates?: { $nin: Date[] };
   geoCode?: {
     $near: {
       $geometry: {
-        type: "Point",
-        coordinates: number[],
-      },
-      $maxDistance: number,
-    },
+        type: "Point";
+        coordinates: number[];
+      };
+      $maxDistance: number;
+    };
   };
 }
 
@@ -184,6 +186,8 @@ export const createPetSitter: RequestHandler = async (req, res, next) => {
   }
 };
 
+// @filter pet sitter
+// @route POST /filter
 export const filterPetSitter: RequestHandler = async (req, res, next) => {
   const { selectedDates, petService, latitude, longitude } = req.body;
 
@@ -207,10 +211,12 @@ export const filterPetSitter: RequestHandler = async (req, res, next) => {
   }
 
   try {
-    const results = await PetSitter.find(filter).populate({
-      path: "petOwner",
-      select: "-password",
-    }).exec();
+    const results = await PetSitter.find(filter)
+      .populate({
+        path: "petOwner",
+        select: "-password",
+      })
+      .exec();
     res.status(200).json(results);
   } catch (error) {
     next(error);

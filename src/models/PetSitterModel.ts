@@ -10,8 +10,15 @@ const petSitterSchema = new Schema(
       postcode: { type: String },
       state: { type: String, enum: ["ACT", "NSW", "NT", "QLD", "SA", "TAS", "VIC", "WA"] },
       country: { type: String },
-      latitude: { type: String },
-      longitude: { type: String },
+      // latitude: { type: String },
+      // longitude: { type: String },
+    },
+    geoCode: {
+      type: {
+        type: String,
+        enum: ["Point"],
+      },
+      coordinates: [],
     },
     images: [String],
     languages: [String],
@@ -19,9 +26,9 @@ const petSitterSchema = new Schema(
     description: { type: String, default: "" },
     service: [
       {
-        service: { 
+        service: {
           type: String,
-          enum: ["Dog boarding", "Doggy day care", "Dog walking", "Home visits", "House sitting"], 
+          enum: ["Dog boarding", "Doggy day care", "Dog walking", "Home visits", "House sitting"],
         }, // service name
         serviceDesc: { type: String },
         Rate: { type: Number }, // service price
@@ -75,12 +82,14 @@ const petSitterSchema = new Schema(
     ],
     abn: { type: String, default: "" },
     isActivePetSitter: { type: Boolean, default: false },
-    notAvailableDates: [Date]
+    notAvailableDates: [Date],
   },
   {
     timestamps: true,
   }
 );
+
+petSitterSchema.index({ geoCode: "2dsphere" });
 
 export type PetSitterType = InferSchemaType<typeof petSitterSchema>;
 

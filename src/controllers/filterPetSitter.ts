@@ -1,7 +1,6 @@
 import createHttpError from "http-errors";
 import { RequestHandler } from "express";
 import mongoose from "mongoose";
-import PetOwner from "../models/PetOwnerModel";
 import PetSitter from "../models/PetSitterModel";
 
 interface filterValues {
@@ -19,23 +18,23 @@ interface filterValues {
 export const filterPetSitter: RequestHandler = async (req, res, next) => {
   const { selectedDates, petService, latitude, longitude } = req.body;
 
-  const filter: any= {};
+  const filter: any = {};
   if (petService) {
-    filter["service.service"] = {$eq: petService}
+    filter["service.service"] = { $eq: petService };
   }
-  if(selectedDates) {
-    filter.notAvailableDates = {$nin: selectedDates}
+  if (selectedDates) {
+    filter.notAvailableDates = { $nin: selectedDates };
   }
-  if(latitude && longitude) {
+  if (latitude && longitude) {
     filter.geoCode = {
       $near: {
         $geometry: {
           type: "Point",
-          coordinates: [longitude, latitude]
+          coordinates: [longitude, latitude],
         },
-        $maxDistance: 50000
-      }
-    }
+        $maxDistance: 50000,
+      },
+    };
   }
 
   try {

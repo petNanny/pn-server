@@ -22,7 +22,12 @@ pipeline {
     }
     
     stages {
-    
+        stage('Git checkout') {
+            steps{
+                // Get source code from a GitHub repository
+                git branch:'dev', url:'https://github.com/AbbyKuo/pn-server.git'
+            }
+        }
         stage('Login to ECR') {
             steps {
                 echo 'Logging into ECR'
@@ -32,7 +37,6 @@ pipeline {
                 
             }
         }
-
         stage('Build and push image') {
             steps {
                 script {
@@ -48,7 +52,6 @@ pipeline {
                 }    
             }
         }
-
         stage('Deploy to ECS') {
             steps {
                 echo'Deploying to ECS'
@@ -72,7 +75,11 @@ pipeline {
                         
                         // Register the new task 
                         sh "aws ecs register-task-definition --execution-role-arn arn:aws:iam::312518712322:role/ecsTaskExecutionRole --network-mode ${ECS_NETWORK_MODE} --requires-compatibilities ${ECS_COMPATIBILITY} --cli-input-json file://container_task_definition.json --output json"
-                       
+                        //sh "cat new_task_definiition.json"
+                        //def taskDefinitionArn = sh(script: "(aws ecs register-task-definition --cli-input-json file://container_task_definition.json --output 'json' | jq -r '.taskDefinition.taskDefinitionArn')", returnStdout: true).trim()
+                        //echo "taskDefinitionArn is ${taskDefinitionArn}"
+
+                        
                         // Update service to use new task Definition
                         sh "aws ecs update-service --cluster \${ECS_CLUSTER} --service \${ECS_SERVICE_NAME} --force-new-deployment --task-definition ${TASK_DEFINITION_FAMILY}" 
                     }

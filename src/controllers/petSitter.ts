@@ -19,10 +19,10 @@ interface filterValues {
     };
   };
   "preference.size"?: {
-    $all: string[]
+    $all: string[];
   };
   "preference.petTypes"?: {
-    $all: string[]
+    $all: string[];
   };
   "home.fenced"?: boolean;
   "home.kids"?: string;
@@ -209,29 +209,29 @@ export const filterPetSitter: RequestHandler = async (req, res, next) => {
     cat,
     smallAnimal,
     noChildren,
-    fencedBackyard
+    fencedBackyard,
   } = req.body;
 
   const petSize: string[] = [];
   if (smallDog && smallDog > 0) {
-    petSize.push("Small")
+    petSize.push("Small");
   }
   if (mediumDog && mediumDog > 0) {
-    petSize.push("Medium")
+    petSize.push("Medium");
   }
   if (largeDog && largeDog > 0) {
-    petSize.push("Large")
+    petSize.push("Large");
   }
   if (giantDog && giantDog > 0) {
-    petSize.push("Giant")
+    petSize.push("Giant");
   }
 
   const petType: string[] = [];
   if (cat && cat > 0) {
-    petType.push("Cats")
+    petType.push("Cats");
   }
   if (smallAnimal && smallAnimal > 0) {
-    petType.push("Small animals")
+    petType.push("Small animals");
   }
 
   const filter: filterValues = {};
@@ -253,16 +253,16 @@ export const filterPetSitter: RequestHandler = async (req, res, next) => {
     };
   }
   if (petSize && petSize.length > 0) {
-    filter["preference.size"] = { $all: petSize }
+    filter["preference.size"] = { $all: petSize };
   }
   if (petType && petType.length > 0) {
-    filter["preference.petTypes"] = { $all: petType }
+    filter["preference.petTypes"] = { $all: petType };
   }
   if (typeof fencedBackyard === "boolean") {
-    filter["home.fenced"] = fencedBackyard
+    filter["home.fenced"] = fencedBackyard;
   }
   if (noChildren === true) {
-    filter["home.kids"] = "None"
+    filter["home.kids"] = "None";
   }
 
   try {

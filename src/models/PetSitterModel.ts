@@ -47,13 +47,13 @@ const petSitterSchema = new Schema(
       default: "Flexible",
     }, // refund policy
     preference: {
-      age: { 
+      age: {
         type: [String],
         enum: ["Puppies", "Young", "Adult", "Senior"],
         // if pet sitter does not select any age, set all ages as default
         // default: ["Puppies", "Young", "Adult", "Senior"]
       }, // dogs ages
-      size: { 
+      size: {
         type: [String],
         enum: ["Small", "Medium", "Large", "Giant"],
         // if pet sitter does not select any size, set all sizes as default
@@ -70,7 +70,11 @@ const petSitterSchema = new Schema(
       propertyType: { type: String, enum: ["House", "Apartment", "Farm"], default: "House" },
       outDoorArea: { type: String, enum: ["None", "Small", "Medium", "Large"], default: "Medium" },
       fenced: { type: Boolean, default: false },
-      kids: { type: String, enum: ["None", "Younger than 3", "Younger than 10", "Older than 10"], default: "None" },
+      kids: {
+        type: String,
+        enum: ["None", "Younger than 3", "Younger than 10", "Older than 10"],
+        default: "None",
+      },
     },
     walkingAreas: [String], // Urban, Beach, City part, Country side, Forest, Nearby off-leash area
     experiences: [

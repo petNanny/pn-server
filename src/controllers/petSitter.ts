@@ -18,6 +18,14 @@ interface filterValues {
       $maxDistance: number;
     };
   };
+  "preference.size"?: {
+    $all: string[]
+  };
+  "preference.petTypes"?: {
+    $all: string[]
+  };
+  "home.fenced"?: boolean;
+  "home.kids"?: string;
 }
 
 // @desc Get all pet sitters
@@ -189,7 +197,42 @@ export const createPetSitter: RequestHandler = async (req, res, next) => {
 // @filter pet sitter
 // @route POST /filter
 export const filterPetSitter: RequestHandler = async (req, res, next) => {
-  const { selectedDates, petService, latitude, longitude } = req.body;
+  const {
+    selectedDates,
+    petService,
+    latitude,
+    longitude,
+    smallDog,
+    mediumDog,
+    largeDog,
+    giantDog,
+    cat,
+    smallAnimal,
+    noChildren,
+    fencedBackyard
+  } = req.body;
+
+  const petSize: string[] = [];
+  if (smallDog && smallDog > 0) {
+    petSize.push("Small")
+  }
+  if (mediumDog && mediumDog > 0) {
+    petSize.push("Medium")
+  }
+  if (largeDog && largeDog > 0) {
+    petSize.push("Large")
+  }
+  if (giantDog && giantDog > 0) {
+    petSize.push("Giant")
+  }
+
+  const petType: string[] = [];
+  if (cat && cat > 0) {
+    petType.push("Cats")
+  }
+  if (smallAnimal && smallAnimal > 0) {
+    petType.push("Small animals")
+  }
 
   const filter: filterValues = {};
   if (petService) {
@@ -208,6 +251,18 @@ export const filterPetSitter: RequestHandler = async (req, res, next) => {
         $maxDistance: 50000,
       },
     };
+  }
+  if (petSize && petSize.length > 0) {
+    filter["preference.size"] = { $all: petSize }
+  }
+  if (petType && petType.length > 0) {
+    filter["preference.petTypes"] = { $all: petType }
+  }
+  if (typeof fencedBackyard === "boolean") {
+    filter["home.fenced"] = fencedBackyard
+  }
+  if (noChildren === true) {
+    filter["home.kids"] = "None"
   }
 
   try {

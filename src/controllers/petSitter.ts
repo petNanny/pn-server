@@ -300,9 +300,9 @@ export const filterPetSitter: RequestHandler = async (req, res, next) => {
     const updatedResults = results.map((result: any, index: number) => {
       return {
         ...result._doc,
-        distance: distanceStrings[index]
-      }
-    })
+        distance: distanceStrings[index],
+      };
+    });
 
     res.status(200).json(updatedResults);
   } catch (error) {

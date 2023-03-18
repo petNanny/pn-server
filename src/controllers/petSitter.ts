@@ -3,6 +3,7 @@ import { RequestHandler } from "express";
 import PetSitter from "../models/PetSitterModel";
 import PetOwner from "../models/PetOwnerModel";
 import mongoose from "mongoose";
+import { getDistance } from "geolib";
 
 interface filterValues {
   "service.service"?: {
@@ -258,7 +259,7 @@ export const filterPetSitter: RequestHandler = async (req, res, next) => {
   if (petType && petType.length > 0) {
     filter["preference.petTypes"] = { $all: petType };
   }
-  if (typeof fencedBackyard === "boolean") {
+  if (typeof fencedBackyard === "boolean" && fencedBackyard === true) {
     filter["home.fenced"] = fencedBackyard;
   }
   if (noChildren === true) {
@@ -272,7 +273,38 @@ export const filterPetSitter: RequestHandler = async (req, res, next) => {
         select: "-password",
       })
       .exec();
-    res.status(200).json(results);
+
+    const distances = results.map((result: any) => {
+      return getDistance(
+        { latitude: latitude, longitude: longitude },
+        { latitude: result.geoCode.coordinates[1], longitude: result.geoCode.coordinates[0] }
+      );
+    });
+
+    const distanceStrings = distances.map((distance: number) => {
+      if (distance <= 1000) {
+        return "< 1 km";
+      } else if (distance <= 5000) {
+        return "< 5 km";
+      } else if (distance <= 10000) {
+        return "< 10 km";
+      } else if (distance <= 20000) {
+        return "< 20 km";
+      } else if (distance <= 50000) {
+        return "< 50 km";
+      } else {
+        return "> 50 km";
+      }
+    });
+
+    const updatedResults = results.map((result: any, index: number) => {
+      return {
+        ...result._doc,
+        distance: distanceStrings[index]
+      }
+    })
+
+    res.status(200).json(updatedResults);
   } catch (error) {
     next(error);
   }

@@ -90,7 +90,7 @@ export const login: RequestHandler = async (req, res) => {
       },
     },
     env.ACCESS_TOKEN_SECRET,
-    { expiresIn: "15m" }
+    { expiresIn: "45d" }
   );
 
   const refreshToken = jwt.sign(

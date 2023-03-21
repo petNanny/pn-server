@@ -432,6 +432,7 @@ export const filterPetSitter: RequestHandler = async (req, res, next) => {
     smallAnimal,
     noChildren,
     fencedBackyard,
+    page,
   } = req.body;
 
   const petSize: string[] = [];
@@ -487,13 +488,28 @@ export const filterPetSitter: RequestHandler = async (req, res, next) => {
     filter["home.kids"] = "None";
   }
 
+  const LIMIT = 1;
+  const startIndex = (Number(page) - 1) * LIMIT;
+
   try {
     const results = await PetSitter.find(filter)
+      .limit(LIMIT)
+      .skip(startIndex)
       .populate({
         path: "petOwner",
         select: "-password",
       })
       .exec();
+
+    const newResults = await PetSitter.find(filter)
+      .populate({
+        path: "petOwner",
+        select: "-password",
+      })
+      .exec();
+
+    const totalNumber = newResults.length;
+    console.log(totalNumber);
 
     const distances = results.map((result: any) => {
       return getDistance(
@@ -525,7 +541,11 @@ export const filterPetSitter: RequestHandler = async (req, res, next) => {
       };
     });
 
-    res.status(200).json(updatedResults);
+    res.status(200).json({
+      updatedResults: updatedResults,
+      currentPage: Number(page),
+      totalPages: Math.ceil(totalNumber / LIMIT),
+    });
   } catch (error) {
     next(error);
   }

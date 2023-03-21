@@ -13,7 +13,7 @@ interface filterValues {
   "service.service"?: {
     $eq: "Dog boarding" | "Doggy day care" | "Dog walking" | "Home visits" | "House sitting";
   };
-  notAvailableDates?: { $nin: Date[] };
+  notAvailableDates?: { $nin: string[] };
   geoCode?: {
     $near: {
       $geometry: {

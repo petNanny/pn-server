@@ -11,8 +11,8 @@ const petSitterSchema = new Schema(
       council: { type: String },
       state: { type: String, enum: ["ACT", "NSW", "NT", "QLD", "SA", "TAS", "VIC", "WA"] },
       country: { type: String },
-      // latitude: { type: String },
-      // longitude: { type: String },
+      latitude: { type: String },
+      longitude: { type: String },
     },
     geoCode: {
       type: {
@@ -99,7 +99,8 @@ const petSitterSchema = new Schema(
     ],
     abn: { type: String, default: "" },
     isActivePetSitter: { type: Boolean, default: false },
-    notAvailableDates: [Date],
+    // use format: "YYYY-MM-DD" would be easy to compare date, because we do not need consider time zone
+    notAvailableDates: [String],
   },
   {
     timestamps: true,

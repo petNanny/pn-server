@@ -137,6 +137,7 @@ export const createPetSitter: RequestHandler = async (req, res, next) => {
     bankAccount,
     abn,
     isActivePetSitter,
+    geoCode,
   } = req.body;
 
   const petOwnerId = req.params.id;
@@ -177,6 +178,7 @@ export const createPetSitter: RequestHandler = async (req, res, next) => {
       bankAccount,
       abn,
       isActivePetSitter,
+      geoCode,
     });
 
     foundPetOwner = await PetOwner.findByIdAndUpdate(

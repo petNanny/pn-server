@@ -3,6 +3,10 @@ import { RequestHandler } from "express";
 import PetSitter from "../models/PetSitterModel";
 import PetOwner from "../models/PetOwnerModel";
 import mongoose from "mongoose";
+import AWS from "aws-sdk";
+import env from "../util/validateEnv";
+import sharp from "sharp";
+import Image from "../models/ImagesModel";
 import { getDistance } from "geolib";
 
 interface filterValues {
@@ -67,10 +71,12 @@ export const getPetSitter: RequestHandler = async (req, res, next) => {
       throw createHttpError(400, "Invalid pet sitter id.");
     }
 
-    const petSitter = await PetSitter.findById(petSitterId).populate({
-      path: "petOwner",
-      select: "-password",
-    });
+    const petSitter = await PetSitter.findById(petSitterId)
+      .populate({
+        path: "petOwner",
+        select: "-password",
+      })
+      .populate("images");
 
     if (!petSitter) {
       throw createHttpError(404, "Pet sitter not found.");
@@ -190,6 +196,219 @@ export const createPetSitter: RequestHandler = async (req, res, next) => {
     }
 
     res.status(201).json({ petSitterFullInfo });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// @asc by order number, user get own images using login user id
+// @route GET /images/:id
+export const userGetOwnImages: RequestHandler = async (req, res, next) => {
+  const petOwnerId = req.params.id;
+  try {
+    if (!mongoose.isValidObjectId(petOwnerId)) {
+      throw createHttpError(400, "Invalid pet sitter id.");
+    }
+
+    const petSitter = await PetSitter.findOne({ petOwner: petOwnerId })
+      .populate({ path: "images" })
+      .populate({ path: "petOwner" });
+    if (!petSitter) {
+      return res.status(404).json({ error: "Pet sitter not found." });
+    }
+
+    const petSitterImages = await Image.find({ petOwner: petOwnerId }).sort({ orderNumber: 1 });
+
+    res.status(200).json(petSitterImages);
+  } catch (error) {
+    next(error);
+  }
+};
+
+// @asc by order number user get pet sitter images using url pet sitter id
+// @route GET /petSitter-images/:id
+export const userGetPetSitterImages: RequestHandler = async (req, res, next) => {
+  const petSitterId = req.params.id;
+  try {
+    if (!mongoose.isValidObjectId(petSitterId)) {
+      throw createHttpError(400, "Invalid pet sitter id.");
+    }
+
+    const petSitter = await PetSitter.findById(petSitterId)
+      .populate({ path: "images" })
+      .populate({ path: "petOwner" });
+    if (!petSitter) {
+      return res.status(404).json({ error: "Pet sitter not found." });
+    }
+
+    const petSitterImages = await Image.find({ petOwner: petSitter.petOwner?._id }).sort({
+      orderNumber: 1,
+    });
+
+    res.status(200).json(petSitterImages);
+  } catch (error) {
+    next(error);
+  }
+};
+
+// pet sitter upload attachments
+// @route POST /upload/:id
+export const uploadAttachments: RequestHandler = async (req, res, next) => {
+  try {
+    const petOwnerId = req.params.id;
+
+    const fileContent = req.file;
+    if (!fileContent) {
+      return res.status(404).json({ error: "Image not found." });
+    }
+    const fileName = req.file?.originalname;
+    const newFileName = `${fileName?.split(".")[0]}-${petOwnerId}-resized.jpeg`;
+    const resizedImage = await sharp(fileContent.buffer)
+      .toFormat("jpeg")
+      .jpeg({ quality: 30 })
+      .toBuffer();
+
+    if (!mongoose.isValidObjectId(petOwnerId)) {
+      return res.status(400).json({ error: "Invalid pet sitter id." });
+    }
+    const petSitter = await PetSitter.findOne({ petOwner: petOwnerId })
+      .populate({ path: "images" })
+      .populate({ path: "petOwner" });
+    if (!petSitter) {
+      return res.status(404).json({ error: "Pet sitter not found." });
+    }
+
+    const duplicate = await Image.findOne({ fileName: newFileName });
+    if (duplicate) {
+      return res
+        .status(409)
+        .json({ error: "Image has been uploaded, please rename file or upload another one" });
+    }
+
+    const s3 = new AWS.S3({
+      region: env.AWS_BUCKET_REGION,
+      accessKeyId: env.AWS_ACCESS_KEY_ID,
+      secretAccessKey: env.AWS_SECRET_ACCESS_KEY,
+    });
+    const params = {
+      Bucket: env.AWS_BUCKET_NAME,
+      Key: `${petOwnerId}/${newFileName}`,
+      Body: resizedImage,
+    };
+    const result = await s3.upload(params).promise();
+
+    const highestOrderImage = await Image.findOne({ petOwner: petOwnerId }).sort("-orderNumber");
+    let orderNumber;
+    if (highestOrderImage && highestOrderImage.orderNumber) {
+      orderNumber = highestOrderImage.orderNumber + 1;
+    } else {
+      orderNumber = 1;
+    }
+
+    const uploadAttachment = await Image.create({
+      url: result.Location,
+      fileName: newFileName,
+      petOwner: petOwnerId,
+      orderNumber: orderNumber,
+    });
+    if (!uploadAttachment) {
+      return res.status(400).json({ error: "Failing to upload attachment" });
+    }
+
+    const updatePetSitterImage = await PetSitter.findOneAndUpdate(
+      { petOwner: petOwnerId },
+      { $push: { images: uploadAttachment._id } },
+      { new: true }
+    )
+      .populate({ path: "images" })
+      .populate({ path: "petOwner" });
+    return res.status(201).json({
+      message: `File uploaded to ${result.Location} successfully`,
+      updatePetSitterImage,
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
+// pet sitter delete attachments
+// @route DELETE /delete/:id
+export const deleteAttachments: RequestHandler = async (req, res, next) => {
+  const { fileName } = req.body;
+  try {
+    const s3 = new AWS.S3({
+      region: env.AWS_BUCKET_REGION,
+      accessKeyId: env.AWS_ACCESS_KEY_ID,
+      secretAccessKey: env.AWS_SECRET_ACCESS_KEY,
+    });
+    const petOwnerId = req.params.id;
+
+    if (!mongoose.isValidObjectId(petOwnerId)) {
+      return res.status(400).json({ error: "Invalid pet sitter id." });
+    }
+    const petSitter = await PetSitter.findOne({ petOwner: petOwnerId })
+      .populate({ path: "images" })
+      .populate({ path: "petOwner" });
+    if (!petSitter) {
+      return res.status(404).json({ error: "Pet sitter not found." });
+    }
+
+    const params = {
+      Bucket: env.AWS_BUCKET_NAME,
+      Key: `${petOwnerId}/${fileName}`,
+    };
+    const deleteImageOnS3 = await s3.deleteObject(params).promise();
+
+    const foundImage = await Image.findOne({ fileName: fileName });
+    if (!foundImage) {
+      return res.status(404).json({ error: "Image not found." });
+    }
+    const deleteImage = await PetSitter.updateOne(
+      { _id: petSitter._id },
+      { $pull: { images: foundImage._id } }
+    );
+    if (deleteImage.modifiedCount === 0) {
+      return res.status(400).json({ error: "failed to delete image from PetSitter" });
+    }
+    const deleteImageOnAttachment = await Image.deleteOne({ _id: foundImage._id });
+    if (deleteImageOnAttachment.deletedCount === 0) {
+      return res.status(400).json({ error: "failed to delete image from Attachment" });
+    }
+
+    return res.status(200).json({ message: "File deleted successfully" });
+  } catch (err) {
+    next(err);
+  }
+};
+
+// @update pet sitter images order
+// @route GET /images/:id
+export const updateImagesOrder: RequestHandler = async (req, res, next) => {
+  const petOwnerId = req.params.id;
+  const petSitterImages = req.body;
+
+  try {
+    if (!mongoose.isValidObjectId(petOwnerId)) {
+      throw createHttpError(400, "Invalid pet sitter id.");
+    }
+
+    const petSitter = await PetSitter.findOne({ petOwner: petOwnerId }).populate({
+      path: "petOwner",
+    });
+    if (!petSitter) {
+      return res.status(404).json({ error: "Pet sitter not found." });
+    }
+
+    petSitterImages.forEach(async (petSitterImage: any, index: number) => {
+      try {
+        await Image.findByIdAndUpdate(petSitterImage._id, { orderNumber: index }, { new: true });
+      } catch (err) {
+        console.log(err);
+        throw createHttpError(200, "failed to update images order.");
+      }
+    });
+
+    res.status(200).json(petSitterImages);
   } catch (error) {
     next(error);
   }

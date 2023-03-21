@@ -509,7 +509,6 @@ export const filterPetSitter: RequestHandler = async (req, res, next) => {
       .exec();
 
     const totalNumber = newResults.length;
-    console.log(totalNumber);
 
     const distances = results.map((result: any) => {
       return getDistance(

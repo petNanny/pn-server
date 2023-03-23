@@ -433,6 +433,7 @@ export const filterPetSitter: RequestHandler = async (req, res, next) => {
     noChildren,
     fencedBackyard,
     page,
+    pageLimit,
   } = req.body;
 
   const petSize: string[] = [];
@@ -488,12 +489,11 @@ export const filterPetSitter: RequestHandler = async (req, res, next) => {
     filter["home.kids"] = "None";
   }
 
-  const LIMIT = 1;
-  const startIndex = (Number(page) - 1) * LIMIT;
+  const startIndex = (Number(page) - 1) * pageLimit;
 
   try {
     const results = await PetSitter.find(filter)
-      .limit(LIMIT)
+      .limit(pageLimit)
       .skip(startIndex)
       .populate({
         path: "petOwner",
@@ -543,7 +543,8 @@ export const filterPetSitter: RequestHandler = async (req, res, next) => {
     res.status(200).json({
       updatedResults: updatedResults,
       currentPage: Number(page),
-      totalPages: Math.ceil(totalNumber / LIMIT),
+      pageLimit: pageLimit,
+      totalPages: Math.ceil(totalNumber / pageLimit),
     });
   } catch (error) {
     next(error);

@@ -9,6 +9,54 @@ import sharp from "sharp";
 import { v4 as uuid } from "uuid";
 import url from "url";
 
+// @desc Get one pet owner's all pets
+// @route GET /allPets/:id
+// @access Public
+export const getAllPets: RequestHandler = async (req, res, next) => {
+  const petOwnerId = req.params.id;
+  try {
+    if (!mongoose.isValidObjectId(petOwnerId)) {
+      throw createHttpError(400, "Invalid pet sitter id.");
+    }
+
+    const pet = await Pet.find({ petOwner: petOwnerId }).populate({
+      path: "petOwner",
+      select: "-password",
+    });
+
+    if (!pet) {
+      throw createHttpError(404, "Pet not found.");
+    }
+    res.status(200).json(pet);
+  } catch (error) {
+    next(error);
+  }
+};
+
+// @desc Get one pet
+// @route GET /onePet/:id
+// @access Public
+export const getOnePet: RequestHandler = async (req, res, next) => {
+  const petId = req.params.id;
+  try {
+    if (!mongoose.isValidObjectId(petId)) {
+      throw createHttpError(400, "Invalid pet sitter id.");
+    }
+
+    const pet = await Pet.findById(petId).populate({
+      path: "petOwner",
+      select: "-password",
+    });
+
+    if (!pet) {
+      throw createHttpError(404, "Pet not found.");
+    }
+    res.status(200).json(pet);
+  } catch (error) {
+    next(error);
+  }
+};
+
 // @desc add one pet
 // @route POST /add/:id
 export const addPet: RequestHandler = async (req, res, next) => {
@@ -42,42 +90,47 @@ export const addPet: RequestHandler = async (req, res, next) => {
       throw createHttpError(404, "Pet owner not found.");
     }
 
-    const uniqueId = uuid().slice(0, 16);
-    const fileName = `${petOwnerId}-${uniqueId}-resized.jpeg`;
-    const resizedImage = await sharp(fileContent?.buffer)
-      .toFormat("jpeg")
-      .jpeg({ quality: 30 })
-      .toBuffer();
+    let result;
+    if (fileContent) {
+      const uniqueId = uuid().slice(0, 16);
+      const fileName = `${petOwnerId}-${uniqueId}-resized.jpeg`;
+      const resizedImage = await sharp(fileContent?.buffer)
+        .toFormat("jpeg")
+        .jpeg({ quality: 30 })
+        .toBuffer();
 
-    const s3 = new AWS.S3({
-      region: env.AWS_BUCKET_REGION,
-      accessKeyId: env.AWS_ACCESS_KEY_ID,
-      secretAccessKey: env.AWS_SECRET_ACCESS_KEY,
-    });
-    const params = {
-      Bucket: env.AWS_BUCKET_NAME,
-      Key: `${petOwnerId}/${fileName}`,
-      Body: resizedImage,
-    };
-    const result = await s3.upload(params).promise();
+      const s3 = new AWS.S3({
+        region: env.AWS_BUCKET_REGION,
+        accessKeyId: env.AWS_ACCESS_KEY_ID,
+        secretAccessKey: env.AWS_SECRET_ACCESS_KEY,
+      });
+      const params = {
+        Bucket: env.AWS_BUCKET_NAME,
+        Key: `${petOwnerId}/${fileName}`,
+        Body: resizedImage,
+      };
+      result = await s3.upload(params).promise();
+    }
+
+    const defaultAvatar = "https://icon-library.com/images/icon-dogs/icon-dogs-7.jpg";
 
     const petInfo = await Pet.create({
       petOwner: foundPetOwner._id,
-      avatar: result.Location,
+      avatar: result?.Location || defaultAvatar,
       petName,
       species,
       breed,
       size,
       gender,
-      yearOfBirth,
-      neutered,
-      vaccinated,
-      chipped,
-      houseTrained,
-      friendlyWithDogs,
-      friendlyWithCats,
-      friendlyWithKids,
-      friendlyWithAdults,
+      yearOfBirth: parseInt(yearOfBirth, 10),
+      neutered: neutered === "true" ? true : false,
+      vaccinated: vaccinated === "true" ? true : false,
+      chipped: chipped === "true" ? true : false,
+      houseTrained: houseTrained === "true" ? true : false,
+      friendlyWithDogs: friendlyWithDogs === "true" ? true : false,
+      friendlyWithCats: friendlyWithCats === "true" ? true : false,
+      friendlyWithKids: friendlyWithKids === "true" ? true : false,
+      friendlyWithAdults: friendlyWithAdults === "true" ? true : false,
       description,
     });
 
@@ -129,15 +182,12 @@ export const updatePet: RequestHandler = async (req, res, next) => {
     if (fileContent) {
       // delete old avatar
       const foundOldAvatar = foundPet.avatar;
-      console.log(foundOldAvatar);
       if (foundOldAvatar) {
         const oldAvatarFileName = url.parse(foundOldAvatar).pathname?.substring(1);
         const oldAvatarParams = {
           Bucket: env.AWS_BUCKET_NAME,
-          // Key: `${foundPet.petOwner?._id}/${oldAvatarFileName}`,
           Key: `${oldAvatarFileName}`,
         };
-        console.log(oldAvatarFileName);
         await s3.deleteObject(oldAvatarParams).promise();
       }
 
@@ -157,7 +207,20 @@ export const updatePet: RequestHandler = async (req, res, next) => {
       petInfo.avatar = result.Location;
     }
 
-    const updatePet = await Pet.findByIdAndUpdate(petId, petInfo, { new: true }).populate({
+    const updatedPetInfo = {
+      ...petInfo,
+      yearOfBirth: parseInt(petInfo.yearOfBirth, 10),
+      neutered: petInfo.neutered === "true" ? true : false,
+      vaccinated: petInfo.vaccinated === "true" ? true : false,
+      chipped: petInfo.chipped === "true" ? true : false,
+      houseTrained: petInfo.houseTrained === "true" ? true : false,
+      friendlyWithDogs: petInfo.friendlyWithDogs === "true" ? true : false,
+      friendlyWithCats: petInfo.friendlyWithCats === "true" ? true : false,
+      friendlyWithKids: petInfo.friendlyWithKids === "true" ? true : false,
+      friendlyWithAdults: petInfo.friendlyWithAdults === "true" ? true : false,
+    };
+
+    const updatePet = await Pet.findByIdAndUpdate(petId, updatedPetInfo, { new: true }).populate({
       path: "petOwner",
       select: "-password",
     });

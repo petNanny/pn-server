@@ -5,8 +5,7 @@ const petsSchema = new Schema(
     petOwner: { type: Schema.Types.ObjectId, ref: "PetOwner", require: true },
     avatar: {
       type: String,
-      default:
-        "https://icon-library.com/images/2018/7702845_dog-pawprint-plantillas-de-tatuajes-temporal-png-download.png",
+      default: "https://icon-library.com/images/icon-dogs/icon-dogs-7.jpg",
     },
     petName: { type: String, require: true },
     species: {
@@ -26,7 +25,7 @@ const petsSchema = new Schema(
       ],
       default: "Dog",
     },
-    breed: { type: String, require: true },
+    breed: { type: String, require: true, default: "" },
     size: {
       type: String,
       enum: ["Extra small", "Small", "Medium", "Large", "Giant"],

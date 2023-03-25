@@ -25,7 +25,7 @@ const petsSchema = new Schema(
       ],
       default: "Dog",
     },
-    breed: { type: String, require: true, default: "" },
+    breed: { type: String, default: "" },
     size: {
       type: String,
       enum: ["Extra small", "Small", "Medium", "Large", "Giant"],

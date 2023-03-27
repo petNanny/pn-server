@@ -18,6 +18,9 @@ export const getPetOwner: RequestHandler = async (req, res, next) => {
     const petOwner = await PetOwner.findById(petOwnerId).populate({
       path: "petSitter",
       strictPopulate: false,
+    }).populate({
+      path: "pets",
+      strictPopulate: false,
     });
     if (!petOwner || !petOwner.isActive) {
       throw createHttpError(400, "Pet owner not found");

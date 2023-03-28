@@ -23,15 +23,11 @@ const petSitterSchema = new Schema(
         service: { type: String }, // service name
         serviceDesc: { type: String },
         Rate: { type: Number }, // service price
+        RateForAddition: { type: Number },
         isActive: { type: Boolean },
       },
     ],
-    additionalService: [
-      {
-        service: { type: String },
-        isActive: { type: Boolean },
-      },
-    ],
+    additionalService: [String],
     policy: {
       type: String,
       enum: ["Flexible", "Moderate"],

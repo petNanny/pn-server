@@ -14,13 +14,23 @@ const petSitterSchema = new Schema(
       latitude: { type: String },
       longitude: { type: String },
     },
+    geoCode: {
+      type: {
+        type: String,
+        enum: ["Point"],
+      },
+      coordinates: [],
+    },
     images: [{ type: Schema.Types.ObjectId, ref: "Attachment" }],
     languages: [String],
     introduction: { type: String, default: "" },
     description: { type: String, default: "" },
     service: [
       {
-        service: { type: String }, // service name
+        service: {
+          type: String,
+          enum: ["Dog boarding", "Doggy day care", "Dog walking", "Home visits", "House sitting"],
+        }, // service name
         serviceDesc: { type: String },
         Rate: { type: Number }, // service price
         isActive: { type: Boolean },
@@ -38,18 +48,34 @@ const petSitterSchema = new Schema(
       default: "Flexible",
     }, // refund policy
     preference: {
-      age: { type: [String], enum: ["Puppies", "Young", "Adult", "Senior"] }, // dogs ages
-      size: { type: [String], enum: ["Small", "Medium", "Large", "Giant"] }, // dogs sizes
+      age: {
+        type: [String],
+        enum: ["Puppies", "Young", "Adult", "Senior"],
+        // if pet sitter does not select any age, set all ages as default
+        // default: ["Puppies", "Young", "Adult", "Senior"]
+      }, // dogs ages
+      size: {
+        type: [String],
+        enum: ["Small", "Medium", "Large", "Giant"],
+        // if pet sitter does not select any size, set all sizes as default
+        // default: ["Small", "Medium", "Large", "Giant"]
+      }, // dogs sizes
       petTypes: {
         type: [String],
         enum: ["Dogs", "Cats", "Ferret", "Small animals"],
+        // if pet sitter does not select any pet type, set all pet types as default
+        // default: ["Dogs", "Cats", "Ferret", "Small animals"]
       },
     },
     home: {
-      propertyType: { type: String, enum: ["House", "Apartment", "Farm"] },
-      outDoorArea: { type: String, enum: ["None", "Small", "Medium", "Large"] },
+      propertyType: { type: String, enum: ["House", "Apartment", "Farm"], default: "House" },
+      outDoorArea: { type: String, enum: ["None", "Small", "Medium", "Large"], default: "Medium" },
       fenced: { type: Boolean, default: false },
-      kids: { type: String, enum: ["None", "Younger than 3", "Younger than 10", "Older than 10"] },
+      kids: {
+        type: String,
+        enum: ["None", "Younger than 3", "Younger than 10", "Older than 10"],
+        default: "None",
+      },
     },
     walkingAreas: [String], // Urban, Beach, City part, Country side, Forest, Nearby off-leash area
     experiences: [
@@ -73,11 +99,15 @@ const petSitterSchema = new Schema(
     ],
     abn: { type: String, default: "" },
     isActivePetSitter: { type: Boolean, default: false },
+    // use format: "YYYY-MM-DD" would be easy to compare date, because we do not need consider time zone
+    notAvailableDates: [String],
   },
   {
     timestamps: true,
   }
 );
+
+petSitterSchema.index({ geoCode: "2dsphere" });
 
 export type PetSitterType = InferSchemaType<typeof petSitterSchema>;
 

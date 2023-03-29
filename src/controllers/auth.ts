@@ -72,6 +72,7 @@ export const register: RequestHandler = async (req, res) => {
       phone: petOwner.phone,
       roles: petOwner.roles,
       isActive: petOwner.isActive,
+      // token and message for testing, can remove when merge with dev
       token,
       message: `A verification email has been sent to ${email}.`,
     });

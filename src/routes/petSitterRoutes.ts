@@ -33,4 +33,7 @@ router.delete("/delete/:id", petSitterController.deleteAttachments);
 // update images order
 router.put("/updateImages/:id", petSitterController.updateImagesOrder);
 
+// filter pet sitter
+router.post("/filter", petSitterController.filterPetSitter);
+
 export default router;

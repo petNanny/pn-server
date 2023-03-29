@@ -6,10 +6,11 @@ import cookieParser from "cookie-parser";
 import authRoutes from "./routes/authRoutes";
 import petSittersRoutes from "./routes/petSitterRoutes";
 import petOwnersRoutes from "./routes/petOwnerRoutes";
+import petRoutes from "./routes/petRoutes";
 
 export const app = express();
 
-const allowedOrigins = ["http://localhost:3000"];
+const allowedOrigins = ["http://localhost:3000", " https://uat.petnanny.live"];
 
 const options: cors.CorsOptions = {
   origin: allowedOrigins,
@@ -23,6 +24,7 @@ app.use(cookieParser());
 app.use("/api/auth", authRoutes);
 app.use("/api/petSitters", petSittersRoutes);
 app.use("/api/petOwners", petOwnersRoutes);
+app.use("/api/pets", petRoutes);
 
 app.use((req, res, next) => {
   next(createHttpError(404, "Endpoint not found"));

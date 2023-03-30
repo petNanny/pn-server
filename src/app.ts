@@ -10,7 +10,11 @@ import petRoutes from "./routes/petRoutes";
 
 export const app = express();
 
-const allowedOrigins = ["http://localhost:3000", " https://uat.petnanny.live"];
+const allowedOrigins = [
+  "http://localhost:3000",
+  "https://uat.petnanny.live",
+  "https://uat.petnanny.live/",
+];
 
 const options: cors.CorsOptions = {
   origin: allowedOrigins,

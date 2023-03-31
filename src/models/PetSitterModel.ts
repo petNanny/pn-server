@@ -29,7 +29,7 @@ const petSitterSchema = new Schema(
       {
         service: {
           type: String,
-          enum: ["Dog boarding", "Doggy day care", "Dog walking", "Home visits", "House sitting"],
+          // enum: ["Dog boarding", "Doggy day care", "Dog walking", "Home visits", "House sitting"],
         }, // service name
         serviceDesc: { type: String },
         Rate: { type: Number }, // service price
@@ -97,6 +97,7 @@ const petSitterSchema = new Schema(
     isActivePetSitter: { type: Boolean, default: false },
     // use format: "YYYY-MM-DD" would be easy to compare date, because we do not need consider time zone
     notAvailableDates: [String],
+    lastUpdateCalendarTime: { type: Date },
   },
   {
     timestamps: true,

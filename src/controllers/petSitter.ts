@@ -7,7 +7,9 @@ import AWS from "aws-sdk";
 import env from "../util/validateEnv";
 import sharp from "sharp";
 import Image from "../models/ImagesModel";
+import LegalDocs from "../models/LegalDocsModels";
 import { getDistance } from "geolib";
+import { json } from "envalid";
 
 interface filterValues {
   "service.service"?: {
@@ -548,5 +550,150 @@ export const filterPetSitter: RequestHandler = async (req, res, next) => {
     });
   } catch (error) {
     next(error);
+  }
+};
+
+//get own legal documents using petSitter id
+//Route: GET /legalDoc/:id
+
+export const getPetSitterLegalDocs: RequestHandler = async (req, res, next) => {
+  const petSitterId = req.params.id;
+  try {
+    if (!mongoose.isValidObjectId(petSitterId)) {
+      throw createHttpError(400, "Invalid pet sitter id.");
+    }
+
+    const petSitter = await PetSitter.findById(petSitterId).populate({ path: "legalDocs" });
+
+    if (!petSitter) {
+      return res.status(404).json({ error: "Pet sitter not found." });
+    }
+
+    const petSitterLegalDocs = await LegalDocs.find({ petSitter: petSitterId });
+
+    res.status(200).json(petSitterLegalDocs);
+  } catch (error) {
+    next(error);
+  }
+};
+
+//upload legal documents for specific petSitter
+//Route: POST /uploadLegalDoc/:id
+export const uploadLegalDocs: RequestHandler = async (req, res, next) => {
+  const petSitterId = req.params.id;
+  const fileContent = req.file;
+
+  try {
+    if (!fileContent) {
+      return res.status(404).json({ error: "Document not found" });
+    }
+    const fileName = req.file?.originalname;
+
+    if (!mongoose.isValidObjectId(petSitterId)) {
+      return res.status(400).json({ error: "Invalid pet sitter id" });
+    }
+
+    const petSitter = await PetSitter.findById(petSitterId).populate({ path: "legalDocs" });
+
+    if (!petSitter) {
+      return res.status(404).json({ error: "Pet sitter not found." });
+    }
+
+    const duplicate = await LegalDocs.findOne({ fileName: fileName });
+    if (duplicate) {
+      return res.status(409).json({
+        error: "Document has been uploaded, please rename the file or upload another one",
+      });
+    }
+
+    const s3 = new AWS.S3({
+      region: env.AWS_BUCKET_REGION,
+      accessKeyId: env.AWS_ACCESS_KEY_ID,
+      secretAccessKey: env.AWS_SECRET_ACCESS_KEY,
+    });
+
+    const params = {
+      Bucket: env.AWS_BUCKET_NAME,
+      Key: `${petSitterId}/${fileName}`,
+      Body: fileContent.buffer,
+    };
+    const result = await s3.upload(params).promise();
+
+    const uploadLegalDoc = await LegalDocs.create({
+      url: result.Location,
+      fileName: fileName,
+      petSitter: petSitterId,
+    });
+    if (!uploadLegalDoc) {
+      return res.status(400).json({ error: "Failing to upload the document" });
+    }
+
+    //update the petsitter on legalDocs location
+    const updatePetSitterLegalDoc = await PetSitter.findByIdAndUpdate(
+      petSitterId,
+      { $push: { legalDocs: uploadLegalDoc._id } },
+      { new: true }
+    ).populate({ path: "legalDocs" });
+
+    return res.status(201).json({
+      message: `Document uplaoded to ${result.Location} successfully`,
+      updatePetSitterLegalDoc,
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
+//pet sitter delete legal documents
+//route DELETE /deleteLegalDoc/:id
+export const deleteLegalDocs: RequestHandler = async (req, res, next) => {
+  const { fileName } = req.body;
+  try {
+    const s3 = new AWS.S3({
+      region: env.AWS_BUCKET_REGION,
+      accessKeyId: env.AWS_ACCESS_KEY_ID,
+      secretAccessKey: env.AWS_SECRET_ACCESS_KEY,
+    });
+    const petSitterId = req.params.id;
+
+    if (!mongoose.isValidObjectId(petSitterId)) {
+      return res.status(400).json({ error: "Invalid pet sitter id." });
+    }
+
+    const petSitter = await PetSitter.findById(petSitterId).populate({ path: "legalDocs" });
+    if (!petSitter) {
+      return res.status(404).json({ error: "Pet sitter not found." });
+    }
+
+    const params = {
+      Bucket: env.AWS_BUCKET_NAME,
+      Key: `${petSitterId}/${fileName}`,
+    };
+    const deleteLegalDocOnS3 = await s3.deleteObject(params).promise();
+
+    //delete it from the database
+
+    const foundLegalDoc = await LegalDocs.findOne({ fileName: fileName });
+    if (!foundLegalDoc) {
+      return res.status(404).json({ error: "Document not found." });
+    }
+
+    //delete from PetSitter document
+    const deleteLegalDoc = await PetSitter.updateOne(
+      { _id: petSitter._id },
+      { $pull: { legalDocs: foundLegalDoc._id } }
+    );
+    if (deleteLegalDoc.modifiedCount === 0) {
+      return res.status(400).json({ error: "failed to delete legal document from PetSitter" });
+    }
+    //delete from legalDocs
+    const deleteDocOnLegalDocs = await LegalDocs.deleteOne({ _id: foundLegalDoc._id });
+    if (deleteDocOnLegalDocs.deletedCount === 0) {
+      return res.status(400).json({ error: "failed to delete document from LegalDocs" });
+    }
+
+    return res.status(200).json({ message: "File deleted successfully" });
+  } catch (err) {
+    next(err);
   }
 };

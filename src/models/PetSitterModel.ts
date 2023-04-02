@@ -80,6 +80,19 @@ const petSitterSchema = new Schema(
         years: { types: Number },
       },
     ],
+    // please use this experience as newest
+    experience: {
+      years: {
+        type: String,
+        enum: ["Less than one", "Less than 5", "more than 5", "more than 10", "more than 20"],
+        default: "Less than one",
+      },
+      expAsVolunteer: { type: Boolean, default: false },
+      expWithBehavioralProblems: { type: Boolean, default: false },
+      expWithRescuePets: { type: Boolean, default: false },
+      familiarWithDogTrainingTechs: { type: Boolean, default: false },
+      skillsDescription: { type: String, default: "" },
+    },
     experienceDesc: { type: String }, //an overall desc for experience
     completedCheck: [
       {

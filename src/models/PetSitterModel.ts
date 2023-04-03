@@ -22,6 +22,7 @@ const petSitterSchema = new Schema(
       coordinates: [],
     },
     images: [{ type: Schema.Types.ObjectId, ref: "Attachment" }],
+    legalDocs: [{ type: Schema.Types.ObjectId, ref: "LegalDocs" }],
     languages: [String],
     introduction: { type: String, default: "" },
     description: { type: String, default: "" },

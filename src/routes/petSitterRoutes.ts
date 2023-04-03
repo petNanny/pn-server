@@ -36,4 +36,15 @@ router.put("/updateImages/:id", petSitterController.updateImagesOrder);
 // filter pet sitter
 router.post("/filter", petSitterController.filterPetSitter);
 
+//routes for uploading legal requirement document:
+
+//User get own legal documents by login user id
+router.get("/legalDoc/:id", petSitterController.getPetSitterLegalDocs);
+
+//Upload legal documents
+router.post("/uploadLegalDoc/:id", upload.single("file"), petSitterController.uploadLegalDocs);
+
+//remove legal documents
+router.delete("/deleteLegalDoc/:id", petSitterController.deleteLegalDocs);
+
 export default router;

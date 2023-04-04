@@ -24,18 +24,19 @@ const petSitterSchema = new Schema(
     images: [{ type: Schema.Types.ObjectId, ref: "Attachment" }],
     legalDocs: [{ type: Schema.Types.ObjectId, ref: "LegalDocs" }],
     languages: [String],
-    introduction: { type: String, default: "" },
-    description: { type: String, default: "" },
+    introduction: { type: String, default: "" }, // one headline
+    description: { type: String, default: "" }, // rich text from editor
     service: [
       {
+        // service name
         service: {
           type: String,
           // enum: ["Dog boarding", "Doggy day care", "Dog walking", "Home visits", "House sitting"],
-        }, // service name
+        },
         serviceDesc: { type: String },
         Rate: { type: Number }, // service price
-        RateForAddition: { type: Number },
-        isActive: { type: Boolean },
+        RateForAddition: { type: Number }, // some services have second price, e.g. one addition pet charge 50 dollars
+        isActive: { type: Boolean }, // isActive is for save Rate and RateForAddition, e.g. if one
       },
     ],
     additionalService: [String],
@@ -45,18 +46,20 @@ const petSitterSchema = new Schema(
       default: "Flexible",
     }, // refund policy
     preference: {
+      // dogs ages
       age: {
         type: [String],
         enum: ["Puppies", "Young", "Adult", "Senior"],
         // if pet sitter does not select any age, set all ages as default
         // default: ["Puppies", "Young", "Adult", "Senior"]
-      }, // dogs ages
+      },
+      // dogs sizes
       size: {
         type: [String],
         enum: ["Small", "Medium", "Large", "Giant"],
         // if pet sitter does not select any size, set all sizes as default
         // default: ["Small", "Medium", "Large", "Giant"]
-      }, // dogs sizes
+      },
       petTypes: {
         type: [String],
         enum: ["Dogs", "Cats", "Ferret", "Small animals"],
@@ -75,6 +78,7 @@ const petSitterSchema = new Schema(
       },
     },
     walkingAreas: [String], // Urban, Beach, City part, Country side, Forest, Nearby off-leash area
+    //TODO: will delete experiences, because we have a 'experience' to replace it
     experiences: [
       {
         title: { types: String }, //what types of experience
@@ -85,7 +89,7 @@ const petSitterSchema = new Schema(
     experience: {
       years: {
         type: String,
-        enum: ["Less than one", "Less than 5", "more than 5", "more than 10", "more than 20"],
+        enum: ["Less than one", "Less than 5", "More than 5", "More than 10", "More than 20"],
         default: "Less than one",
       },
       expAsVolunteer: { type: Boolean, default: false },
@@ -101,12 +105,8 @@ const petSitterSchema = new Schema(
         isFinished: { type: Boolean, default: false },
       },
     ],
-    bankAccount: [
-      {
-        bsb: { type: String },
-        accountNumber: { type: String },
-      },
-    ],
+    bankAccount: { bsb: { type: String }, accountNumber: { type: String } },
+
     abn: { type: String, default: "" },
     isActivePetSitter: { type: Boolean, default: false },
     // use format: "YYYY-MM-DD" would be easy to compare date, because we do not need consider time zone

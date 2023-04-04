@@ -4,6 +4,7 @@ import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import env from "../util/validateEnv";
 import _ from "lodash";
+import { OAuth2Client, TokenPayload } from "google-auth-library";
 // @desc Create new pet Owner
 // @route POST /auth/register
 // @access Public
@@ -153,4 +154,99 @@ export const refreshToken: RequestHandler = (req, res) => {
     );
     res.status(200).json({ accessToken });
   });
+};
+
+// @desc Google Login
+// @route POST /auth/google
+// @access Public
+export const googleLogin: RequestHandler = async (req, res) => {
+  const { token } = req.body;
+  if (!token) {
+    return res.status(401).json({ error: "Authorization token not provided." });
+  }
+  const client = new OAuth2Client(env.GOOGLE_OAUTH_CLIENT_ID);
+  const ticket = await client.verifyIdToken({
+    idToken: token,
+    audience: env.GOOGLE_OAUTH_CLIENT_ID,
+  });
+  const payload = ticket.getPayload() as TokenPayload;
+  const { name, email, sub } = payload;
+
+  const foundPetOwner = await PetOwner.findOne({ email });
+
+  if (!foundPetOwner) {
+    const petOwner = await PetOwner.create({
+      email,
+      userName: name,
+      googleSubId: sub,
+      firstName: name,
+      lastName: name,
+    });
+
+    const accessToken = jwt.sign(
+      {
+        PetOwnerInfo: {
+          id: petOwner._id,
+          email: petOwner.email,
+          roles: petOwner.roles,
+        },
+      },
+      env.ACCESS_TOKEN_SECRET,
+      { expiresIn: "45d" }
+    );
+
+    const refreshToken = jwt.sign(
+      {
+        PetOwnerInfo: {
+          email: petOwner.email,
+        },
+      },
+      env.REFRESH_TOKEN_SECRET,
+      { expiresIn: "7d" }
+    );
+
+    const currentPetOwner = _.omit(petOwner.toObject(), ["_password", "__v"]);
+
+    //create cookie with refresh token
+    res.cookie("jsonWebToken", refreshToken, {
+      httpOnly: true,
+      sameSite: "none",
+      maxAge: 7 * 24 * 60 * 60 * 1000, //  7d
+    });
+
+    return res.status(200).json({ accessToken, currentPetOwner });
+  }
+
+  const accessToken = jwt.sign(
+    {
+      PetOwnerInfo: {
+        id: foundPetOwner._id,
+        email: foundPetOwner.email,
+        roles: foundPetOwner.roles,
+      },
+    },
+    env.ACCESS_TOKEN_SECRET,
+    { expiresIn: "45d" }
+  );
+
+  const refreshToken = jwt.sign(
+    {
+      PetOwnerInfo: {
+        email: foundPetOwner.email,
+      },
+    },
+    env.REFRESH_TOKEN_SECRET,
+    { expiresIn: "7d" }
+  );
+
+  const currentPetOwner = _.omit(foundPetOwner.toObject(), ["_password", "__v"]);
+
+  //create cookie with refresh token
+  res.cookie("jsonWebToken", refreshToken, {
+    httpOnly: true,
+    sameSite: "none",
+    maxAge: 7 * 24 * 60 * 60 * 1000, //  7d
+  });
+
+  return res.status(200).json({ accessToken, currentPetOwner });
 };

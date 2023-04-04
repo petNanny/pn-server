@@ -11,5 +11,7 @@ router.post("/register", authController.register);
 router.post("/login", loginLimiter, authController.login);
 //refresh
 router.get("/refresh_token", authController.refreshToken);
+// google login
+router.post("/google", authController.googleLogin);
 
 export default router;

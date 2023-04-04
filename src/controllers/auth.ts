@@ -4,6 +4,8 @@ import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import env from "../util/validateEnv";
 import _ from "lodash";
+import nodemailer from "nodemailer";
+import mongoose from "mongoose";
 import { OAuth2Client, TokenPayload } from "google-auth-library";
 // @desc Create new pet Owner
 // @route POST /auth/register
@@ -37,6 +39,29 @@ export const register: RequestHandler = async (req, res) => {
     phone,
   });
 
+  // send verification email
+  const token = jwt.sign({ email }, env.JWT_KEY, { expiresIn: "1d" });
+  const userId = petOwner._id;
+  const link = env.EMAIL_VERIFY_LINK + `${userId}/${token}/`;
+  const transporter = nodemailer.createTransport({
+    service: env.EMAIL_SERVICE,
+    auth: {
+      user: env.EMAIL_USER,
+      pass: env.EMAIL_PASS,
+    },
+  });
+  const mailOptions = {
+    from: "coffeetopiaemailverify@gmail.com",
+    to: `${email}`,
+    subject: "Email confirmation",
+    html: `Press <a href=${link}>here</a> to verify your email.`,
+  };
+  await transporter.sendMail(mailOptions, function (error) {
+    if (error) {
+      return res.status(404).json({ error: "failed to send email" });
+    }
+  });
+
   if (petOwner) {
     res.status(201).json({
       _id: petOwner._id,
@@ -48,9 +73,61 @@ export const register: RequestHandler = async (req, res) => {
       phone: petOwner.phone,
       roles: petOwner.roles,
       isActive: petOwner.isActive,
+      // token and message for testing, can remove when merge with dev
+      token,
+      message: `A verification email has been sent to ${email}.`,
     });
   } else {
     res.status(400).json({ message: "Failing to create the petOwner" });
+  }
+};
+
+// @desc Verify email
+// @route GET /auth/verify/:userId/:token/
+// @access Public
+export const verifyEmail: RequestHandler = async (req, res, next) => {
+  const { userId, token } = req.params;
+
+  try {
+    if (!mongoose.isValidObjectId(userId)) {
+      return res.status(400).json({ message: "Invalid pet owner id." });
+    }
+
+    const foundPetOwner = await PetOwner.findById(userId);
+    if (!foundPetOwner) {
+      return res.status(401).json({ message: "Account not found" });
+    }
+
+    jwt.verify(token, env.JWT_KEY, async function (err) {
+      if (err) {
+        return res.status(404).json({ error: "please verify your email" });
+      }
+      if (foundPetOwner.isActive) {
+        return res.status(409).json({ message: "Email already verified" });
+      }
+      const updatedPetOwner = await PetOwner.findByIdAndUpdate(
+        userId,
+        { $set: { isActive: true } },
+        { new: true }
+      );
+      if (updatedPetOwner) {
+        res.status(201).json({
+          _id: updatedPetOwner._id,
+          firstName: updatedPetOwner.firstName,
+          lastName: updatedPetOwner.lastName,
+          userName: updatedPetOwner.userName,
+          email: updatedPetOwner.email,
+          avatar: updatedPetOwner.avatar,
+          phone: updatedPetOwner.phone,
+          roles: updatedPetOwner.roles,
+          isActive: updatedPetOwner.isActive,
+        });
+      } else {
+        res.status(400).json({ message: "Failing to active the petOwner" });
+      }
+    });
+  } catch (error) {
+    next(error);
   }
 };
 
@@ -73,7 +150,7 @@ export const login: RequestHandler = async (req, res) => {
   }
 
   if (!foundPetOwner.isActive) {
-    return res.status(401).json({ message: "Account not active" });
+    return res.status(401).json({ message: "Please verify your email" });
   }
 
   const match = await bcrypt.compare(password, foundPetOwner.password);

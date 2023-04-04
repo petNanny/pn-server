@@ -12,5 +12,10 @@ export default cleanEnv(process.env, {
   AWS_SECRET_ACCESS_KEY: str(),
   AWS_BUCKET_NAME: str(),
   AWS_BUCKET_REGION: str(),
+  JWT_KEY: str(),
+  EMAIL_SERVICE: str(),
+  EMAIL_USER: str(),
+  EMAIL_PASS: str(),
+  EMAIL_VERIFY_LINK: str(),
   GOOGLE_OAUTH_CLIENT_ID: str(),
 });

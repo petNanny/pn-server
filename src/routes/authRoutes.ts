@@ -11,6 +11,8 @@ router.post("/register", authController.register);
 router.post("/login", loginLimiter, authController.login);
 //refresh
 router.get("/refresh_token", authController.refreshToken);
+// verify
+router.get("/verify/:userId/:token/", authController.verifyEmail);
 // google login
 router.post("/google", authController.googleLogin);
 

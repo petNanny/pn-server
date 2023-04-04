@@ -1,12 +1,37 @@
-import { InferSchemaType, model, Schema } from "mongoose";
+import { InferSchemaType, model, Schema, Document, Types } from "mongoose";
 
-const petOwnerSchema = new Schema(
+interface IPetOwner extends Document {
+  email: string;
+  firstName: string;
+  lastName: string;
+  userName: string;
+  googleSubId?: string;
+  password: string;
+  avatar: string;
+  phone: string;
+  roles: string[];
+  isActive: boolean;
+  petSitter?: Types.ObjectId;
+  pets?: Types.ObjectId[];
+}
+
+const petOwnerSchema = new Schema<IPetOwner>(
   {
     email: { type: String, required: true, unique: true },
     firstName: { type: String, required: true },
     lastName: { type: String, required: true },
     userName: { type: String },
-    password: { type: String, required: true },
+    googleSubId: { type: String },
+    password: {
+      type: String,
+      required: function (this: IPetOwner) {
+        if (this.googleSubId) {
+          return false;
+        } else {
+          return true;
+        }
+      },
+    },
     avatar: {
       type: String,
       default: "https://icon-library.com/images/anonymous-avatar-icon/anonymous-avatar-icon-25.jpg",

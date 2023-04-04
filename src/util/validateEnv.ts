@@ -17,4 +17,5 @@ export default cleanEnv(process.env, {
   EMAIL_USER: str(),
   EMAIL_PASS: str(),
   EMAIL_VERIFY_LINK: str(),
+  GOOGLE_OAUTH_CLIENT_ID: str(),
 });

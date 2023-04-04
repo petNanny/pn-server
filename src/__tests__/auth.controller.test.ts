@@ -109,7 +109,7 @@ describe("login", () => {
     expect(res.body).toEqual({ message: "All fields are required" });
   });
 
-  it("returns status code 200 if login success", async () => {
+  it("returns status code 401 if email not verified", async () => {
     const registerData = {
       firstName: "shawn",
       lastName: "wang",
@@ -122,10 +122,28 @@ describe("login", () => {
     };
     await supertest(app).post("/api/auth/register").send(registerData);
     const res = await supertest(app).post("/api/auth/login").send(loginData);
+    expect(res.statusCode).toEqual(401);
+    expect(res.body).toEqual({ message: "Please verify your email" });
+  });
+
+  it("returns status code 200 if login success", async () => {
+    const registerData = {
+      firstName: "shawn",
+      lastName: "wang",
+      password: "123",
+      email: "shawn@gmail.com",
+    };
+    const loginData = {
+      email: "shawn@gmail.com",
+      password: "123",
+    };
+    const register = await supertest(app).post("/api/auth/register").send(registerData);
+    await supertest(app).get(`/api/auth/verify/${register.body._id}/${register.body.token}/`);
+    const res = await supertest(app).post("/api/auth/login").send(loginData);
     expect(res.statusCode).toEqual(200);
   });
 
-  it("returns status code 200 if password error", async () => {
+  it("returns status code 401 if password error", async () => {
     const registerData = {
       firstName: "shawn",
       lastName: "wang",
@@ -136,7 +154,8 @@ describe("login", () => {
       email: "shawn@gmail.com",
       password: "1234",
     };
-    await supertest(app).post("/api/auth/register").send(registerData);
+    const register = await supertest(app).post("/api/auth/register").send(registerData);
+    await supertest(app).get(`/api/auth/verify/${register.body._id}/${register.body.token}/`);
     const res = await supertest(app).post("/api/auth/login").send(loginData);
     expect(res.statusCode).toEqual(401);
     expect(res.body).toEqual({ message: "Unauthorized" });

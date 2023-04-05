@@ -28,8 +28,9 @@ pipeline {
         EMAIL_USER=credentials('EMAIL_USER')
         EMAIL_PASS=credentials('EMAIL_PASS')
         EMAIL_VERIFY_LINK=credentials('EMAIL_VERIFY_LINK')
+        GOOGLE_OAUTH_CLIENT_ID=credentials('GOOGLE_OAUTH_CLIENT_ID')
     }
-    
+
     stages {
 
         stage('Git checkout') {
@@ -45,7 +46,6 @@ pipeline {
                 withAWS(credentials: 'aws_pn', region: 'ap-southeast-2') {
                     sh'aws ecr get-login-password --region ${AWS_REGION} | docker login --username AWS --password-stdin ${ECR_REPO}'
                 }
-                
             }
         }
 
@@ -54,14 +54,14 @@ pipeline {
                 script {
                     echo 'Building and pushing the Docker image to ECR'
                     // Push image to ECR
-                    sh'docker build -t ${IMAGE_NAME} --build-arg MONGO_CONNECTION_STRING=$MONGO_CONNECTION_STRING --build-arg PORT=$PORT --build-arg ACCESS_TOKEN_SECRET=$ACCESS_TOKEN_SECRET --build-arg REFRESH_TOKEN_SECRET=$REFRESH_TOKEN_SECRET --build-arg TEST_PORT=$TEST_PORT --build-arg MONGO_CONNECTION_STRING_TEST_DB=$MONGO_CONNECTION_STRING_TEST_DB --build-arg AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID --build-arg AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY --build-arg AWS_BUCKET_NAME=$AWS_BUCKET_NAME --build-arg AWS_BUCKET_REGION=$AWS_BUCKET_REGION --build-arg JWT_KEY=$JWT_KEY --build-arg EMAIL_SERVICE=$EMAIL_SERVICE --build-arg EMAIL_USER=$EMAIL_USER --build-arg EMAIL_PASS=$EMAIL_PASS --build-arg EMAIL_VERIFY_LINK=$EMAIL_VERIFY_LINK --no-cache .'
+                    sh'docker build -t ${IMAGE_NAME} --build-arg MONGO_CONNECTION_STRING=$MONGO_CONNECTION_STRING --build-arg PORT=$PORT --build-arg ACCESS_TOKEN_SECRET=$ACCESS_TOKEN_SECRET --build-arg REFRESH_TOKEN_SECRET=$REFRESH_TOKEN_SECRET --build-arg TEST_PORT=$TEST_PORT --build-arg MONGO_CONNECTION_STRING_TEST_DB=$MONGO_CONNECTION_STRING_TEST_DB --build-arg AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID --build-arg AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY --build-arg AWS_BUCKET_NAME=$AWS_BUCKET_NAME --build-arg AWS_BUCKET_REGION=$AWS_BUCKET_REGION --build-arg JWT_KEY=$JWT_KEY --build-arg EMAIL_SERVICE=$EMAIL_SERVICE --build-arg EMAIL_USER=$EMAIL_USER --build-arg EMAIL_PASS=$EMAIL_PASS --build-arg EMAIL_VERIFY_LINK=$EMAIL_VERIFY_LINK --build-arg GOOGLE_OAUTH_CLIENT_ID --no-cache .'
                     
                     // Build and tag Docker image
                     sh'docker tag ${IMAGE_NAME}:latest ${ECR_REPO}/${IMAGE_REPO_NAME}:${IMAGE_TAG}'
                     
                     // Push image to ECR
                     sh'docker push ${ECR_REPO}/${IMAGE_REPO_NAME}:${IMAGE_TAG}'
-                }    
+                }
             }
         }
 
@@ -92,9 +92,7 @@ pipeline {
                         // Update service to use new task Definition
                         sh "aws ecs update-service --cluster \${ECS_CLUSTER} --service \${ECS_SERVICE_NAME} --force-new-deployment --task-definition ${TASK_DEFINITION_FAMILY}" 
                     }
-                    
                 }
-                
             }
         }
 
@@ -103,7 +101,6 @@ pipeline {
                 sh "docker rmi ${IMAGE_NAME}:latest"
             }
         }
-        
     }
     
     post {

@@ -3,6 +3,8 @@ import Admin from "../models/AdminModel";
 import jwt from "jsonwebtoken";
 import env from "../util/validateEnv";
 import _ from "lodash";
+import mongoose from "mongoose";
+import createHttpError from "http-errors";
 
 // @desc Create a new admin
 // @route POST /admin/register
@@ -79,7 +81,7 @@ export const adminLogin: RequestHandler = async (req, res) => {
     { expiresIn: "7d" }
   );
 
-  const currentAdmin = _.omit(foundAdmin.toObject(), ["password","__v"]);
+  const currentAdmin = _.omit(foundAdmin.toObject(), ["password", "__v"]);
 
   //create cookie with adminRefresh token
   res.cookie("jsonWebToken", adminRefreshToken, {
@@ -137,4 +139,28 @@ export const adminLogout: RequestHandler = async (req, res) => {
     sameSite: "none",
   });
   res.json({ message: "Cookie cleared" });
+};
+
+// @desc get one admin
+// @route GET /admin
+// @access Public
+export const getAdmin: RequestHandler = async (req, res, next) => {
+  const adminId = req.params.id;
+  try {
+    if (!mongoose.isValidObjectId(adminId)) {
+      throw createHttpError(400, "Invalid admin id.");
+    }
+    if (!adminId) {
+      throw createHttpError(400, "Admin ID Required");
+    }
+    const admin = await Admin.findById(adminId);
+
+    if (!admin ) {
+      throw createHttpError(400, "Admin not found");
+    }
+
+    res.status(200).json(admin);
+  } catch (error) {
+    next(error);
+  }
 };

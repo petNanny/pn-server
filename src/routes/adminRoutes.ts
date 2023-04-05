@@ -1,6 +1,7 @@
 import express from "express";
 import * as adminController from "../controllers/admin";
 import { loginLimiter } from "../middleware/loginLimiter";
+import { verifyJWT } from "../middleware/verifyJWT";
 
 const router = express.Router();
 
@@ -12,5 +13,7 @@ router.post("/login", loginLimiter, adminController.adminLogin);
 router.get("/refresh_token", adminController.adminRefreshToken);
 //logout
 router.post("/logout", adminController.adminLogout);
+//get admin
+router.get("/:id", verifyJWT, adminController.getAdmin);
 
 export default router;

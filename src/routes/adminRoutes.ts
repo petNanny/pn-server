@@ -10,5 +10,7 @@ router.post("/register", adminController.adminRegister);
 router.post("/login", loginLimiter, adminController.adminLogin);
 //refresh
 router.get("/refresh_token", adminController.adminRefreshToken);
+//logout
+router.post("/logout", adminController.adminLogout);
 
 export default router;

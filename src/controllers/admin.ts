@@ -5,7 +5,7 @@ import env from "../util/validateEnv";
 import _ from "lodash";
 
 // @desc Create a new admin
-// @route POST /admins/register
+// @route POST /admin/register
 // @access Public
 export const adminRegister: RequestHandler = async (req, res) => {
   const { email, password } = req.body;
@@ -38,7 +38,7 @@ export const adminRegister: RequestHandler = async (req, res) => {
 };
 
 // @desc Admin login
-// @route POST /admins/login
+// @route POST /admin/login
 // @access Public
 export const adminLogin: RequestHandler = async (req, res) => {
   const { email, password } = req.body;
@@ -92,7 +92,7 @@ export const adminLogin: RequestHandler = async (req, res) => {
 };
 
 // @desc Admin refresh
-// @route GET /admins/refresh
+// @route GET /admin/refresh
 // @access Public
 export const adminRefreshToken: RequestHandler = (req, res) => {
   const cookies = req.cookies;
@@ -124,4 +124,17 @@ export const adminRefreshToken: RequestHandler = (req, res) => {
     );
     res.status(200).json({ adminAccessToken });
   });
+};
+
+// @desc Admin logout
+// @route POST /admin/logout
+// @access Public
+export const adminLogout: RequestHandler = async (req, res) => {
+  const cookies = req.cookies;
+  if (!cookies?.jsonWebToken) return res.sendStatus(204);
+  res.clearCookie("jsonWebToken", {
+    httpOnly: true,
+    sameSite: "none",
+  });
+  res.json({ message: "Cookie cleared" });
 };

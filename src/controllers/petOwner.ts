@@ -2,6 +2,11 @@ import createHttpError from "http-errors";
 import { RequestHandler } from "express";
 import mongoose from "mongoose";
 import PetOwner from "../models/PetOwnerModel";
+import AWS from "aws-sdk";
+import sharp from "sharp";
+import { v4 as uuid } from "uuid";
+import env from "../util/validateEnv";
+import url from "url";
 
 // @desc get one petOwner
 // @route GET /petOwners
@@ -63,6 +68,74 @@ export const updatePetOwner: RequestHandler = async (req, res, next) => {
     res.status(200).json(petOwner);
   } catch (error) {
     next(error);
+  }
+};
+
+// pet owner upload/update avatar
+// @route POST /uploadAvatar/:id
+export const uploadAvatar: RequestHandler = async (req, res, next) => {
+  try {
+    const petOwnerId = req.params.id;
+    const fileContent = req.file;
+
+    if (!fileContent) {
+      return res.status(404).json({ error: "Image not found." });
+    }
+
+    const uniqueId = uuid().slice(0, 16);
+    const newFileName = `${petOwnerId}-${uniqueId}-resized.jpeg`;
+    const resizedImage = await sharp(fileContent.buffer)
+      .toFormat("jpeg")
+      .jpeg({ quality: 30 })
+      .toBuffer();
+
+    if (!mongoose.isValidObjectId(petOwnerId)) {
+      return res.status(400).json({ error: "Invalid pet sitter id." });
+    }
+    const foundPetOwner = await PetOwner.findById(petOwnerId);
+    if (!foundPetOwner) {
+      return res.status(404).json({ error: "Pet owner not found." });
+    }
+
+    const s3 = new AWS.S3({
+      region: env.AWS_BUCKET_REGION,
+      accessKeyId: env.AWS_ACCESS_KEY_ID,
+      secretAccessKey: env.AWS_SECRET_ACCESS_KEY,
+    });
+
+    // delete old avatar
+    const foundOldAvatar = foundPetOwner.avatar;
+    if (foundOldAvatar) {
+      const oldAvatarFileName = url.parse(foundOldAvatar).pathname?.substring(1);
+      const oldAvatarParams = {
+        Bucket: env.AWS_BUCKET_NAME,
+        Key: `${oldAvatarFileName}`,
+      };
+      await s3.deleteObject(oldAvatarParams).promise();
+    }
+
+    // upload new avatar
+    const params = {
+      Bucket: env.AWS_BUCKET_NAME,
+      Key: `${petOwnerId}/${newFileName}`,
+      Body: resizedImage,
+    };
+    const result = await s3.upload(params).promise();
+    const uploadAvatar = await PetOwner.findByIdAndUpdate(
+      petOwnerId,
+      { $set: { avatar: result.Location } },
+      { new: true }
+    );
+    if (!uploadAvatar) {
+      return res.status(400).json({ error: "Failing to upload attachment" });
+    }
+
+    return res.status(201).json({
+      message: `File uploaded to ${result.Location} successfully`,
+      uploadAvatar,
+    });
+  } catch (err) {
+    next(err);
   }
 };
 

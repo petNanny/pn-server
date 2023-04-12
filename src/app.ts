@@ -7,6 +7,8 @@ import authRoutes from "./routes/authRoutes";
 import petSittersRoutes from "./routes/petSitterRoutes";
 import petOwnersRoutes from "./routes/petOwnerRoutes";
 import petRoutes from "./routes/petRoutes";
+import messageRoutes from "./routes/messageRoutes";
+import conversationRoutes from "./routes/conversationRoutes";
 
 export const app = express();
 
@@ -29,6 +31,8 @@ app.use("/api/auth", authRoutes);
 app.use("/api/petSitters", petSittersRoutes);
 app.use("/api/petOwners", petOwnersRoutes);
 app.use("/api/pets", petRoutes);
+app.use("/api/messages", messageRoutes);
+app.use("/api/conversations", conversationRoutes);
 
 app.use((req, res, next) => {
   next(createHttpError(404, "Endpoint not found"));

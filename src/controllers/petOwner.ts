@@ -34,6 +34,28 @@ export const getPetOwner: RequestHandler = async (req, res, next) => {
   }
 };
 
+// @desc Get all petOwners
+// @route GET /petOwners
+// @access Public
+export const getPetOwners: RequestHandler = async (req, res, next) => {
+  const { page } = req.query;
+  try {
+    const LIMIT = 8;
+    const startIndex = (Number(page) - 1) * LIMIT;
+    const total = await PetOwner.countDocuments({});
+
+    const PetOwners = await PetOwner.find().sort({ _id: -1 }).limit(LIMIT).skip(startIndex);
+
+    res.status(200).json({
+      data: PetOwners,
+      currentPage: Number(page),
+      numberOfPage: Math.ceil(total / LIMIT),
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
 // @desc petOwner update
 // @route Patch /petOwners
 // @access Private

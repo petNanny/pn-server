@@ -4,6 +4,8 @@ import { verifyJWT } from "../middleware/verifyJWT";
 
 const router = express.Router();
 
+//Get all petOwners
+router.get("/", petOwnerController.getPetOwners);
 router.get("/:id", verifyJWT, petOwnerController.getPetOwner);
 router.patch("/:id", petOwnerController.updatePetOwner);
 router.patch("/deletePetOwner/:id", petOwnerController.deletePetOwner);

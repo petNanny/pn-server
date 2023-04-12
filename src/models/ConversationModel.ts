@@ -24,7 +24,7 @@ const Conversation = new Schema(
 //     },
 //     receiver: {
 //       type: Schema.Types.ObjectId,
-//       ref: "PetOwner",
+//       ref: "PetSitter",
 //       required: true,
 //     }
 //   },

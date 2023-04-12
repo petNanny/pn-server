@@ -47,6 +47,10 @@ export const getConversations: RequestHandler = async (req, res, next) => {
     }
     const conversations = await Conversation.find({
       members: { $in: [userId] },
+    }).populate({
+      path: "members",
+      select: "-password -email -phone -address -roles",
+      strictPopulate: false,
     });
     res.status(200).json(conversations);
   } catch (error) {

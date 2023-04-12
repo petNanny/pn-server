@@ -23,7 +23,16 @@ export const getMessages: RequestHandler = async (req, res, next) => {
     if (!mongoose.isValidObjectId(conversationId)) {
       throw createHttpError(400, "Invalid conversation id.");
     }
-    const messages = await Message.find({ conversationId: conversationId });
+    const messages = await Message.find({
+      conversationId: conversationId,
+    }).populate({
+      path: "conversationId",
+      populate: {
+        path: "members",
+        select: "-password -email -phone -address -roles",
+        strictPopulate: false,
+      },
+    });
     if (!messages) return res.status(404).json({ message: "Messages not found" });
     res.status(200).json(messages);
   } catch (error) {

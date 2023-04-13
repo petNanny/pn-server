@@ -51,7 +51,7 @@ export const register: RequestHandler = async (req, res) => {
     },
   });
   const mailOptions = {
-    from: "coffeetopiaemailverify@gmail.com",
+    from: "petnannyau@gmail.com",
     to: `${email}`,
     subject: "Email confirmation",
     html: `Press <a href=${link}>here</a> to verify your email.`,

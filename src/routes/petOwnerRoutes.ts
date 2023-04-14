@@ -7,6 +7,8 @@ const router = express.Router();
 const storage = multer.memoryStorage();
 const upload = multer({ storage });
 
+//Get all petOwners
+router.get("/", petOwnerController.getPetOwners);
 router.get("/:id", verifyJWT, petOwnerController.getPetOwner);
 router.patch("/:id", petOwnerController.updatePetOwner);
 router.patch("/deletePetOwner/:id", petOwnerController.deletePetOwner);

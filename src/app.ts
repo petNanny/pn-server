@@ -7,6 +7,7 @@ import authRoutes from "./routes/authRoutes";
 import petSittersRoutes from "./routes/petSitterRoutes";
 import petOwnersRoutes from "./routes/petOwnerRoutes";
 import petRoutes from "./routes/petRoutes";
+import adminRoutes from "./routes/adminRoutes";
 import messageRoutes from "./routes/messageRoutes";
 import conversationRoutes from "./routes/conversationRoutes";
 
@@ -31,6 +32,8 @@ app.use("/api/auth", authRoutes);
 app.use("/api/petSitters", petSittersRoutes);
 app.use("/api/petOwners", petOwnersRoutes);
 app.use("/api/pets", petRoutes);
+app.use("/api/admin", adminRoutes);
+
 app.use("/api/messages", messageRoutes);
 app.use("/api/conversations", conversationRoutes);
 

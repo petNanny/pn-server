@@ -147,15 +147,15 @@ export const adminLogout: RequestHandler = async (req, res) => {
 export const getAdmin: RequestHandler = async (req, res, next) => {
   const adminId = req.params.id;
   try {
-    if (!mongoose.isValidObjectId(adminId)) {
-      throw createHttpError(400, "Invalid admin id.");
-    }
     if (!adminId) {
       throw createHttpError(400, "Admin ID Required");
     }
+    if (!mongoose.isValidObjectId(adminId)) {
+      throw createHttpError(400, "Invalid admin id.");
+    }
     const admin = await Admin.findById(adminId);
 
-    if (!admin ) {
+    if (!admin) {
       throw createHttpError(400, "Admin not found");
     }
 

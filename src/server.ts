@@ -19,7 +19,12 @@ mongoose
   })
   .catch(console.error);
 
-const io = new Server(server, { cors: { origin: "*" } });
+const allowedOrigins = [
+  "http://localhost:3000",
+  "https://uat.petnanny.live",
+  "https://uat.petnanny.live/",
+];
+const io = new Server(server, { cors: { origin: allowedOrigins } });
 
 interface User {
   userId: string;

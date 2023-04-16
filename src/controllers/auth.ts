@@ -258,6 +258,7 @@ export const googleLogin: RequestHandler = async (req, res) => {
       googleSubId: sub,
       firstName: name,
       lastName: name,
+      isActive: true,
     });
 
     const accessToken = jwt.sign(

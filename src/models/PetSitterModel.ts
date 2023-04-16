@@ -4,15 +4,19 @@ const petSitterSchema = new Schema(
   {
     petOwner: { type: Schema.Types.ObjectId, ref: "PetOwner" },
     address: {
-      street_number: { type: String },
-      street: { type: String },
-      city: { type: String },
-      postcode: { type: String },
-      council: { type: String },
-      state: { type: String, enum: ["ACT", "NSW", "NT", "QLD", "SA", "TAS", "VIC", "WA"] },
-      country: { type: String },
-      latitude: { type: String },
-      longitude: { type: String },
+      street_number: { type: String, default: "" },
+      street: { type: String, default: "" },
+      city: { type: String, default: "" },
+      postcode: { type: String, default: "" },
+      council: { type: String, default: "" },
+      state: {
+        type: String,
+        enum: ["ACT", "NSW", "NT", "QLD", "SA", "TAS", "VIC", "WA", ""],
+        default: "",
+      },
+      country: { type: String, default: "" },
+      latitude: { type: String, default: "" },
+      longitude: { type: String, default: "" },
     },
     geoCode: {
       type: {

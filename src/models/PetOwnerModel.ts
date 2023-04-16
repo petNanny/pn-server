@@ -13,6 +13,7 @@ interface IPetOwner extends Document {
   isActive: boolean;
   petSitter?: Types.ObjectId;
   pets?: Types.ObjectId[];
+  chatMessages?: Types.ObjectId[];
 }
 
 const petOwnerSchema = new Schema<IPetOwner>(
@@ -44,6 +45,7 @@ const petOwnerSchema = new Schema<IPetOwner>(
     isActive: { type: Boolean, default: false },
     petSitter: { type: Schema.Types.ObjectId, ref: "PetSitter" },
     pets: [{ type: Schema.Types.ObjectId, ref: "Pet" }],
+    chatMessages: [{ type: Schema.Types.ObjectId, ref: "ChatMessage" }],
   },
   {
     timestamps: true,

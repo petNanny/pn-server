@@ -9,7 +9,7 @@ const upload = multer({ storage });
 
 //Get all petOwners
 router.get("/", petOwnerController.getPetOwners);
-router.get("/:id", verifyJWT, petOwnerController.getPetOwner);
+router.get("/:id", petOwnerController.getPetOwner);
 router.patch("/:id", petOwnerController.updatePetOwner);
 router.patch("/deletePetOwner/:id", petOwnerController.deletePetOwner);
 router.post("/uploadAvatar/:id", upload.single("avatar"), petOwnerController.uploadAvatar);

@@ -13,8 +13,8 @@ mongoose
   .connect(env.MONGO_CONNECTION_STRING)
   .then(() => {
     console.log("Mongoose connected");
-    server.listen(port, () => {
-      console.log("Server running on port: " + port);
+    server.listen(port || 5000, () => {
+      console.log("Server running on port: " + port || 5000);
     });
   })
   .catch(console.error);
